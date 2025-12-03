@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>白鷺祭用語集デモ</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>白鷺祭実行委員会 用語集</h1>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="用語、読み、キーワードで検索">
+        </div>
+        <div class="categories" id="category-filter">
+            <div class="chip active" data-cat="all">すべて</div>
+            <div class="chip" data-cat="備品">備品</div>
+            <div class="chip" data-cat="場所">場所</div>
+            <div class="chip" data-cat="ルール">ルール</div>
+            <div class="chip" data-cat="業務">業務</div>
+        </div>
+    </header>
+
+    <ul id="result-list">
+        </ul>
+    <div id="no-result" class="no-result">該当する用語が見つかりません</div>
+</div>
+
+</body>
+</html>
