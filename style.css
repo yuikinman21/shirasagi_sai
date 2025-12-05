@@ -142,19 +142,34 @@ body {
     background: var(--white);
     padding: 10px 16px;
     border-bottom: 1px solid #eee;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 .categories-scroll {
-    display: flex; gap: 8px; overflow-x: auto;
-    scrollbar-width: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 .categories-scroll::-webkit-scrollbar { display: none; }
 
 .chip {
-    padding: 6px 14px; border-radius: 20px; font-size: 13px;
-    border: 1px solid #eee; background: var(--white); color: var(--text-sub);
-    white-space: nowrap; cursor: pointer; transition: 0.2s;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid #eee;
+    background: var(--white);
+    color: var(--text-sub);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
 }
-.chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+.chip.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: 0 2px 6px rgba(0, 86, 179, 0.2);
+}
 
 /* リスト部分 */
 .scrollable-content { padding: 16px; padding-bottom: 80px; }
