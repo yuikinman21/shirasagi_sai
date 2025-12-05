@@ -70,17 +70,20 @@ function goToHome() {
     viewHome.classList.add('active');
 }
 
-// --- 検索・描画ロジック ---
+
 function renderList() {
     listContainer.innerHTML = '';
     
     const filtered = termsData.filter(item => {
-        const isCatMatch = (currentCategory === 'all') || (item.category === currentCategory);
+        
+        const isCatMatch = (currentCategory === 'all') || (item.tags && item.tags.includes(currentCategory));
+        
         const q = currentQuery.toLowerCase().trim();
-        const isTextMatch = !q || // 空なら全表示
+        const isTextMatch = !q || 
             item.term.toLowerCase().includes(q) || 
             item.reading.includes(q) || 
             item.keywords.toLowerCase().includes(q);
+        
         return isCatMatch && isTextMatch;
     });
 
@@ -92,16 +95,20 @@ function renderList() {
     } else {
         noResultMsg.style.display = 'none';
         filtered.forEach(item => {
+            // tags配列をmapして、個別のspanタグHTMLを作成し結合する
+            const tagsHtml = item.tags.map(tag => `<span class="category-badge">${tag}</span>`).join('');
+
             const li = document.createElement('li');
             li.className = 'item';
             li.innerHTML = `
-                <div>
-                    <span class="category-badge">${item.category}</span>
+                <div class="item-header-row">
                     <span class="term">${highlight(item.term, currentQuery)}<span class="reading">(${item.reading})</span></span>
+                    <div class="badges-wrapper">${tagsHtml}</div>
                 </div>
                 <div class="description">${highlight(item.description, currentQuery)}</div>
             `;
-            li.onclick = () => alert(`${item.term}\n\n${item.description}`);
+            // アラート表示もタグ対応
+            li.onclick = () => alert(`${item.term}\n[${item.tags.join(', ')}]\n\n${item.description}`);
             listContainer.appendChild(li);
         });
     }

@@ -171,9 +171,42 @@ body {
 }
 .item:active { background: #fafafa; transform: scale(0.98); }
 
-.term { font-size: 16px; font-weight: bold; color: var(--text-main); display: block; margin-bottom: 4px; }
+.item-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start; /* 上揃え */
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.term {
+    flex: 1; /* 余ったスペースを使う */
+    font-size: 16px; 
+    font-weight: bold; 
+    color: var(--text-main); 
+    display: block;
+}
+
 .reading { font-size: 11px; color: var(--text-sub); margin-left: 6px; font-weight: normal;}
-.category-badge { font-size: 10px; padding: 3px 8px; background: var(--primary-bg); color: var(--primary); border-radius: 4px; margin-left: auto; float: right;}
+
+.category-badge {
+    font-size: 10px;
+    padding: 3px 8px;
+    background: var(--primary-bg);
+    color: var(--primary);
+    border-radius: 4px;
+    white-space: nowrap; /* 文字列の折り返し禁止 */
+    font-weight: bold;
+}
+
+.badges-wrapper {
+    display: flex;
+    flex-wrap: wrap; /* 画面幅が狭いときに折り返す */
+    gap: 4px; /* バッジ間の隙間 */
+    justify-content: flex-end; /* 右寄せ */
+    max-width: 40%; /* バッジエリアが広がりすぎないように制限 */
+}
+
 .description { font-size: 13px; color: #555; margin-top: 8px; line-height: 1.5; }
 
 /* ハイライト */
