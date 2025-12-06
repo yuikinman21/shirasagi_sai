@@ -1,10 +1,10 @@
-// --- 初期化処理 ---
 document.addEventListener('DOMContentLoaded', () => {
     init();
+    loadFavorites(); // ④ お気に入り読み込み
     setupEventListeners();
 });
 
-// --- DOM要素 ---
+// --- 要素取得 ---
 const viewHome = document.getElementById('view-home');
 const viewResults = document.getElementById('view-search-results');
 const homeInput = document.getElementById('home-input');
@@ -12,290 +12,274 @@ const resultInput = document.getElementById('result-input');
 const listContainer = document.getElementById('result-list');
 const noResultMsg = document.getElementById('no-result');
 const resultCountSpan = document.getElementById('result-count');
-const modalOverlay = document.getElementById('modal-overlay');
-const modalCloseBtn = document.getElementById('modal-close-btn');
-const modalTerm = document.getElementById('modal-term');
-const modalBadges = document.getElementById('modal-badges');
-const modalDescription = document.getElementById('modal-description');
+const homeFavoritesList = document.getElementById('home-favorites-list');
 
 // --- データ管理 ---
 let termsData = [];
 let selectedTags = new Set(); 
 let currentQuery = '';
+let favoriteIds = []; // ④ お気に入りID
 
-// --- 1. データ読み込み ---
+// --- 1. 初期化 ---
 async function init() {
     try {
+        // キャッシュ回避
         const response = await fetch('data.json?' + new Date().getTime());
         if (!response.ok) throw new Error('Network response was not ok');
         termsData = await response.json();
-        console.log("データ読み込み成功:", termsData.length + "件");
-    } catch (error) {
-        console.error('Data Load Error:', error);
-        if(listContainer) {
-            listContainer.innerHTML = '<li style="color:red; padding:20px;">データの読み込みに失敗しました。</li>';
-        }
+        
+        // データ読込後にお気に入りリストを描画
+        renderHomeFavorites(); 
+    } catch (e) {
+        console.error(e);
+        if(listContainer) listContainer.innerHTML = '<li style="color:red;padding:20px">データ読込エラー</li>';
     }
 }
 
-// --- 2. イベントリスナー ---
+// --- 2. イベント設定 ---
 function setupEventListeners() {
-    
-    // ▼ ホーム画面: 検索
-    if(homeInput) {
-        homeInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && homeInput.value.trim() !== "") {
-                goToResults(homeInput.value);
-            }
-        });
-    }
+    // 検索入力 (ホーム & 結果画面)
+    [homeInput, resultInput].forEach(input => {
+        if(input) {
+            input.addEventListener('input', (e) => {
+                if(input === resultInput) { currentQuery = e.target.value; renderList(); }
+            });
+            input.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter' && input.value.trim()) goToResults(input.value);
+            });
+        }
+    });
+
+    // 検索ボタン (ホーム)
     const homeSearchBtn = document.getElementById('home-search-btn');
-    if(homeSearchBtn) {
-        homeSearchBtn.addEventListener('click', () => {
-            if (homeInput && homeInput.value.trim() !== "") {
-                goToResults(homeInput.value);
-            }
+    if(homeSearchBtn) homeSearchBtn.addEventListener('click', () => {
+        if(homeInput.value.trim()) goToResults(homeInput.value);
+    });
+
+    // ① タグエリアの開閉ボタン
+    const expandBtn = document.getElementById('filter-expand-btn');
+    const tagContainer = document.getElementById('tag-container');
+    if(expandBtn && tagContainer) {
+        expandBtn.addEventListener('click', () => {
+            tagContainer.classList.toggle('expanded');
         });
     }
 
-    // ▼ ホーム画面: カテゴリカード (クリックしたらそのタグ1つだけで検索開始)
-    const homeGrid = document.querySelector('.cat-grid');
-    if(homeGrid) {
-        homeGrid.addEventListener('click', (e) => {
-            const card = e.target.closest('.cat-card');
-            if (card) {
-                // ホームから飛ぶ場合は、それまでの選択をリセットして、そのタグだけを選択
-                selectedTags.clear();
-                selectedTags.add(card.dataset.cat);
-                goToResults(""); // クエリなしで遷移
-            }
-        });
-    }
-
-    // ▼ ★重要: タグの複数選択ロジック
-    const allTagContainers = document.querySelectorAll('.categories-scroll');
+    // タグ選択 (ホームショートカット & フィルターバー)
+    const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-grid');
     allTagContainers.forEach(container => {
         container.addEventListener('click', (e) => {
-            const chip = e.target.closest('.chip');
+            // クリック禁止要素(no-select)なら無視
+            if (e.target.closest('.no-select')) return;
+
+            const chip = e.target.closest('.chip, .cat-card');
             if (chip) {
                 const tag = chip.dataset.cat;
+                
+                // ホームのカードなら、そのタグで一発検索
+                if (chip.classList.contains('cat-card')) {
+                    selectedTags.clear(); selectedTags.add(tag);
+                    goToResults("");
+                    return;
+                }
 
-                // A. 「すべて」が押された場合 -> 全解除
-                if (tag === 'all') {
-                    selectedTags.clear();
-                } 
-                // B. それ以外が押された場合 -> ON/OFF切り替え
+                // フィルターチップのロジック
+                if (tag === 'all') selectedTags.clear();
                 else {
-                    if (selectedTags.has(tag)) {
-                        selectedTags.delete(tag); // 選択解除
-                    } else {
-                        selectedTags.add(tag);    // 選択追加
-                    }
+                    if (selectedTags.has(tag)) selectedTags.delete(tag);
+                    else selectedTags.add(tag);
                 }
 
-                // ホーム画面にいるなら結果画面へ移動
-                if (viewHome.classList.contains('active')) {
-                    goToResults(""); 
-                } else {
-                    // すでに結果画面なら再描画のみ
-                    updateCategoryChips();
-                    renderList();
-                }
+                if (viewHome.classList.contains('active')) goToResults("");
+                else { updateCategoryChips(); renderList(); }
             }
         });
     });
 
-    // ▼ その他ボタン
+    // 戻る・リセット
     const backBtn = document.getElementById('back-btn');
     if(backBtn) backBtn.addEventListener('click', goToHome);
+    const resetBtn = document.getElementById('reset-search-btn');
+    if(resetBtn) resetBtn.addEventListener('click', () => { selectedTags.clear(); goToResults("", "all"); });
 
-    if(resultInput) {
-        resultInput.addEventListener('input', (e) => {
-            currentQuery = e.target.value;
-            renderList();
-        });
-    }
-
-    const resetSearchBtn = document.getElementById('reset-search-btn');
-    if(resetSearchBtn) {
-        resetSearchBtn.addEventListener('click', () => {
-            selectedTags.clear();
-            goToResults("");
-        });
-    }
-
-    if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
-    if(modalOverlay) {
-        modalOverlay.addEventListener('click', (e) => {
-            // 背景（オーバーレイ）をクリックした時だけ閉じる
-            if (e.target === modalOverlay) closeModal();
-        });
-    }
+    // モーダル閉じる
+    const modalClose = document.getElementById('modal-close-btn');
+    const modalOverlay = document.getElementById('modal-overlay');
+    if(modalClose) modalClose.addEventListener('click', closeModal);
+    if(modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
 }
 
 // --- 3. 画面遷移 ---
 function goToResults(query) {
-    // クエリがある場合は更新(空文字なら維持しない、今回は上書き)
     if (typeof query === 'string') {
         currentQuery = query;
         if(resultInput) resultInput.value = query;
         if(homeInput) homeInput.value = query;
     }
-
-    // UI更新
     updateCategoryChips();
     renderList();
-
-    // 画面切り替え
-    if(viewHome) {
-        viewHome.classList.remove('active');
-        viewHome.classList.add('hidden');
-    }
-    if(viewResults) {
-        viewResults.classList.remove('hidden');
-        viewResults.classList.add('active');
-    }
+    
+    viewHome.classList.remove('active'); viewHome.classList.add('hidden');
+    viewResults.classList.remove('hidden'); viewResults.classList.add('active');
+    
+    // 画面遷移時はタグエリアを閉じる(スッキリさせる)
+    const tagContainer = document.getElementById('tag-container');
+    if(tagContainer) tagContainer.classList.remove('expanded');
+    
+    window.scrollTo(0, 0);
 }
 
 function goToHome() {
-    // 状態リセット
     if(homeInput) homeInput.value = '';
     if(resultInput) resultInput.value = '';
-    selectedTags.clear(); // ホームに戻る時は選択解除（お好みで）
-
-    if(viewResults) {
-        viewResults.classList.remove('active');
-        viewResults.classList.add('hidden');
-    }
-    if(viewHome) {
-        viewHome.classList.remove('hidden');
-        viewHome.classList.add('active');
-    }
+    selectedTags.clear();
+    
+    // ホームに戻るたびにお気に入りを再描画
+    renderHomeFavorites();
+    
+    viewResults.classList.remove('active'); viewResults.classList.add('hidden');
+    viewHome.classList.remove('hidden'); viewHome.classList.add('active');
 }
 
-// --- 4. 描画ロジック (AND検索) ---
+
+// --- 4. 描画ロジック ---
 function renderList() {
-    if(!listContainer) return;
     listContainer.innerHTML = '';
     
     const filtered = termsData.filter(item => {
-        // A. タグ判定 (ANDロジック: 選択されたタグを「全て」持っているか)
+        // AND検索
         let isTagMatch = true;
-        
         if (selectedTags.size > 0) {
-            // アイテムが持っているタグ配列を取得
             const itemTags = item.tags || [];
-            // 選択中のタグ(selectedTags)すべてについて、itemTagsに含まれているか確認
-            // 一つでも含まれていなければ false になる
-            for (let tag of selectedTags) {
-                if (!itemTags.includes(tag)) {
-                    isTagMatch = false;
-                    break; 
-                }
-            }
+            for (let tag of selectedTags) if (!itemTags.includes(tag)) { isTagMatch = false; break; }
         }
-        // ※selectedTagsが空(size=0)の場合は true のまま(=全件表示)
-
-        // B. キーワード判定
+        // キーワード検索
         const q = currentQuery.toLowerCase().trim();
         const term = item.term || '';
         const reading = item.reading || '';
         const keywords = item.keywords || '';
-
-        // キーワードでタグ検索
-        let isKeywordInTag = false;
-        if (item.tags && Array.isArray(item.tags)) {
-            isKeywordInTag = item.tags.some(tag => tag.toLowerCase().includes(q));
-        }
-
-        const isTextMatch = !q || 
-            term.toLowerCase().includes(q) || 
-            reading.includes(q) || 
-            keywords.toLowerCase().includes(q) ||
-            isKeywordInTag;
-            
+        let isKeyInTag = (item.tags || []).some(t => t.toLowerCase().includes(q));
+        
+        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywords.includes(q) || isKeyInTag;
         return isTagMatch && isTextMatch;
     });
 
-    // 件数更新
     if(resultCountSpan) resultCountSpan.textContent = filtered.length;
+    noResultMsg.style.display = filtered.length === 0 ? 'block' : 'none';
 
-    // 表示処理
-    if (filtered.length === 0) {
-        if(noResultMsg) noResultMsg.style.display = 'block';
-    } else {
-        if(noResultMsg) noResultMsg.style.display = 'none';
+    filtered.forEach(item => {
+        const isFav = favoriteIds.includes(item.id);
         
-        filtered.forEach(item => {
-            let badgesHtml = '';
-            if (item.tags && Array.isArray(item.tags)) {
-                badgesHtml = item.tags.map(tag => `<span class="category-badge" data-tag="${tag}">${tag}</span>`).join('');
-            }
+        // ② カード内タグ: onclickで searchByTag を呼ぶ
+        const badgesHtml = (item.tags || []).map(tag => 
+            `<span class="category-badge" data-tag="${tag}" onclick="searchByTag(event, '${tag}')">${tag}</span>`
+        ).join('');
 
+        const li = document.createElement('li');
+        li.className = 'item';
+        
+        li.innerHTML = `
+            <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, ${item.id})">
+                ${isFav ? '★' : '☆'}
+            </button>
+            <div class="item-header-row">
+                <span class="term">${highlight(item.term, currentQuery)}
+                    <span class="reading">(${item.reading})</span>
+                </span>
+                <div class="badges-wrapper no-select">${badgesHtml}</div>
+            </div>
+            <div class="description">${highlight(item.description, currentQuery)}</div>
+        `;
+        li.onclick = () => openModal(item);
+        listContainer.appendChild(li);
+    });
+}
+
+// --- ② タグクリック検索 (グローバル関数) ---
+window.searchByTag = function(e, tag) {
+    e.stopPropagation(); // モーダル開かない
+    selectedTags.clear();
+    selectedTags.add(tag);
+    
+    // キーワードはクリアしてタグ検索に集中させる
+    currentQuery = ""; 
+    if(resultInput) resultInput.value = "";
+    
+    updateCategoryChips();
+    renderList();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+// --- ④ お気に入り操作 (グローバル関数) ---
+window.toggleFav = function(e, id) {
+    e.stopPropagation(); // モーダル開かない
+    
+    id = parseInt(id); // 数値化
+    if (favoriteIds.includes(id)) {
+        favoriteIds = favoriteIds.filter(f => f !== id);
+    } else {
+        favoriteIds.push(id);
+    }
+    
+    // 保存
+    localStorage.setItem('shirasagi_favs', JSON.stringify(favoriteIds));
+    
+    // UI更新
+    renderList(); // リストの☆を更新
+    renderHomeFavorites(); // ホームのリストを更新
+};
+
+// お気に入りリスト(ホーム)の描画
+function renderHomeFavorites() {
+    if(!homeFavoritesList) return;
+    homeFavoritesList.innerHTML = '';
+    
+    if(favoriteIds.length === 0) {
+        homeFavoritesList.innerHTML = '<li style="text-align:center;font-size:12px;color:#aaa;padding:10px;">よく見る用語を★登録できます</li>';
+        return;
+    }
+    
+    // 最新順に表示
+    [...favoriteIds].reverse().forEach(id => {
+        const item = termsData.find(d => d.id === id);
+        if(item) {
             const li = document.createElement('li');
-            li.className = 'item';
-            li.innerHTML = `
-                <div class="item-header-row">
-                    <span class="term">${highlight(item.term, currentQuery)}<span class="reading">(${item.reading})</span></span>
-                    <div class="badges-wrapper">${badgesHtml}</div>
-                </div>
-                <div class="description">${highlight(item.description, currentQuery)}</div>
-            `;
-            
+            li.className = 'fav-item';
+            li.innerHTML = `<span>${item.term}</span> <span style="font-size:16px;color:#ccc;">›</span>`;
             li.onclick = () => openModal(item);
-            
-            listContainer.appendChild(li);
-        });
-    }
-}
-
-// --- ヘルパー: チップの見た目更新 ---
-
-// モーダルを開く
-function openModal(item) {
-    // データを流し込む
-    modalTerm.textContent = item.term;
-    // 読み仮名もつける場合はこちら: modalTerm.innerHTML = `${item.term} <span style="font-size:0.6em; color:#777;">(${item.reading})</span>`;
-    modalDescription.innerHTML = item.description.replace(/\n/g, '<br>'); // 改行対応
-    modalBadges.innerHTML = createBadgesHtml(item.tags);
-
-    // 表示クラスを付与（アニメーション開始）
-    modalOverlay.classList.add('active');
-}
-
-// モーダルを閉じる
-function closeModal() {
-    modalOverlay.classList.remove('active');
-}
-
-// バッジHTML生成
-function createBadgesHtml(tags) {
-    if (tags && Array.isArray(tags)) {
-        return tags.map(tag => `<span class="category-badge" data-tag="${tag}">${tag}</span>`).join('');
-    }
-    return '';
-}
-
-function updateCategoryChips() {
-    const allChips = document.querySelectorAll('.chip');
-    allChips.forEach(chip => {
-        const tag = chip.dataset.cat;
-        const isHome = chip.closest('#view-home'); 
-        if (tag === 'all') {
-            if (isHome) chip.classList.remove('active');
-            else {
-                if (selectedTags.size === 0) chip.classList.add('active');
-                else chip.classList.remove('active');
-            }
-        } else {
-            if (selectedTags.has(tag)) chip.classList.add('active');
-            else chip.classList.remove('active');
+            homeFavoritesList.appendChild(li);
         }
     });
 }
 
+// --- ④ お気に入り読み込み ---
+function loadFavorites() {
+    const saved = localStorage.getItem('shirasagi_favs');
+    if (saved) favoriteIds = JSON.parse(saved);
+}
+
+
+// --- その他ヘルパー ---
+function updateCategoryChips() {
+    document.querySelectorAll('.categories-scroll .chip').forEach(chip => {
+        const tag = chip.dataset.cat;
+        // ホームかどうかは関係なく、選択状態を反映
+        if(tag === 'all') chip.classList.toggle('active', selectedTags.size === 0);
+        else chip.classList.toggle('active', selectedTags.has(tag));
+    });
+}
 function highlight(text, query) {
     if (!query || !text) return text || '';
     const regex = new RegExp(`(${query})`, 'gi');
     return text.replace(regex, '<mark class="highlight-text">$1</mark>');
 }
+
+// モーダル
+function openModal(item) {
+    const overlay = document.getElementById('modal-overlay');
+    document.getElementById('modal-term').textContent = item.term;
+    document.getElementById('modal-description').innerHTML = item.description.replace(/\n/g, '<br>');
+    document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${t}">${t}</span>`).join('');
+    overlay.classList.add('active');
+}
+function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }

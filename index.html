@@ -21,34 +21,22 @@
             <button id="home-search-btn" class="search-btn-primary">検索</button>
         </div>
 
-        <div class="home-categories">
-            <!-- <p class="cat-label">よく使われるカテゴリ</p>
-                <div class="cat-grid">
-                    <button class="cat-card" data-cat="企画部">🎉 企画部</button>
-                    <button class="cat-card" data-cat="技術部">🛠 技術部</button>
-                    <button class="cat-card" data-cat="渉外部">🤝 渉外部</button>
-                    <button class="cat-card" data-cat="情報部">💻 情報部</button>
-                </div> -->
+        <div class="home-favorites">
+            <p class="cat-label">お気に入り (ブックマーク)</p>
+            <ul id="home-favorites-list" class="favorites-list">
+                <li class="no-fav-msg">まだお気に入りがありません</li>
+            </ul>
+        </div>
 
-                <div class="categories-scroll">
-                    <!-- <div class="chip active" data-cat="all">すべて</div> -->
-                    
-                    <div class="chip" data-cat="四役">四役</div>
-                    <div class="chip" data-cat="企画部">企画部</div>
-                    <div class="chip" data-cat="情報部">情報部</div>
-                    <div class="chip" data-cat="技術部">技術部</div>
-                    <div class="chip" data-cat="渉外部">渉外部</div>
-                    
-                    <div class="chip" data-cat="機材">機材</div>
-                    <div class="chip" data-cat="物品">物品</div>
-                    <div class="chip" data-cat="作業">作業</div>
-                    <div class="chip" data-cat="場所">場所</div>
-                    
-                    <div class="chip" data-cat="新歓">新歓</div>
-                    <div class="chip" data-cat="本祭典">本祭典</div>
-                    
-                    <div class="chip" data-cat="その他">その他</div>
-                </div>
+        <div class="home-categories">
+            <p class="cat-label">カテゴリから探す</p>
+            <div class="cat-grid">
+                <button class="cat-card" data-cat="四役">👑 四役</button>
+                <button class="cat-card" data-cat="企画部">🎉 企画部</button>
+                <button class="cat-card" data-cat="情報部">💻 情報部</button>
+                <button class="cat-card" data-cat="技術部">🛠 技術部</button>
+                <button class="cat-card" data-cat="渉外部">🤝 渉外部</button>
+            </div>
         </div>
     </div>
 </div>
@@ -64,7 +52,7 @@
     </header>
 
     <div class="filter-bar">
-        <div class="categories-scroll">
+        <div id="tag-container" class="categories-scroll">
             <div class="chip active" data-cat="all">すべて</div>
             
             <div class="chip" data-cat="四役">四役</div>
@@ -83,6 +71,7 @@
             
             <div class="chip" data-cat="その他">その他</div>
         </div>
+        <button id="filter-expand-btn" class="filter-toggle-btn"></button>
     </div>
 
     <div class="container scrollable-content">
@@ -103,18 +92,13 @@
         <button id="modal-close-btn" class="modal-close-btn">×</button>
         <div class="modal-header">
             <h2 id="modal-term">用語名</h2>
-            <div id="modal-badges" class="badges-wrapper">
-                </div>
+            <div id="modal-badges" class="badges-wrapper"></div>
         </div>
         <div class="modal-body">
             <p id="modal-description">ここに詳細説明が入ります。</p>
         </div>
     </div>
 </div>
-
-<script src="script.js" defer></script>
-</body>
-</html>
 
 </body>
 </html>
