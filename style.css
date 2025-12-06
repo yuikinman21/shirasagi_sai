@@ -117,6 +117,17 @@ body {
 }
 .cat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--primary); }
 
+.cat-card[data-cat="favorites"] {
+    background-color: #fffde7;
+    color: #f57f17;
+    border-color: #fff59d;
+    font-weight: bold;
+}
+.cat-card[data-cat="favorites"]:hover {
+    background-color: #fff9c4;
+    border-color: #fdd835;
+    box-shadow: 0 4px 12px rgba(253, 216, 53, 0.2);
+}
 
 /* --- 2. 検索結果画面スタイル --- */
 
@@ -191,14 +202,37 @@ body {
 .categories-scroll.expanded + .filter-toggle-btn::before { content: "▲ 閉じる"; }
 
 .chip {
-    padding: 6px 14px; border-radius: 6px; font-size: 13px;
-    border: 1px solid #eee; background: var(--white); color: var(--text-sub);
-    white-space: nowrap; cursor: pointer; transition: 0.2s; user-select: none;
-    flex-shrink: 0; /* 縮まないようにする */
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    border: 1px solid #eee;
+    background: var(--white);
+    color: var(--text-sub);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+    flex-shrink: 0;
 }
+
+/* 通常のチップのアクティブ状態 (青) */
 .chip.active {
-    background: var(--primary); color: white; border-color: var(--primary);
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
     box-shadow: 0 2px 6px rgba(0, 86, 179, 0.2);
+}
+
+/* ▼▼▼ 追加: お気に入りチップのアクティブ状態 (黄色) ▼▼▼ */
+.chip[data-cat="favorites"].active {
+    background: #ffecb3; /* 薄い黄色 */
+    color: #f57f17;      /* 濃いオレンジ */
+    border-color: #ffe082;
+    box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
+}
+.chip[data-cat="favorites"] {
+    color: #fbc02d; /* 非選択時も少し黄色っぽく文字色をつける */
+    border-color: #fff8e1;
 }
 
 /* リスト部分 */

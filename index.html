@@ -21,16 +21,10 @@
             <button id="home-search-btn" class="search-btn-primary">検索</button>
         </div>
 
-        <div class="home-favorites">
-            <p class="cat-label">お気に入り (ブックマーク)</p>
-            <ul id="home-favorites-list" class="favorites-list">
-                <li class="no-fav-msg">まだお気に入りがありません</li>
-            </ul>
-        </div>
-
         <div class="home-categories">
             <p class="cat-label">カテゴリから探す</p>
             <div class="cat-grid">
+                <button class="cat-card" data-cat="favorites">⭐ お気に入り</button>
                 <button class="cat-card" data-cat="四役">👑 四役</button>
                 <button class="cat-card" data-cat="企画部">🎉 企画部</button>
                 <button class="cat-card" data-cat="情報部">💻 情報部</button>
@@ -53,8 +47,9 @@
 
     <div class="filter-bar">
         <div id="tag-container" class="categories-scroll">
+            <div class="chip" data-cat="favorites" style="font-weight:bold;">★ お気に入り</div>
             <div class="chip active" data-cat="all">すべて</div>
-            
+
             <div class="chip" data-cat="四役">四役</div>
             <div class="chip" data-cat="企画部">企画部</div>
             <div class="chip" data-cat="情報部">情報部</div>
