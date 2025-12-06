@@ -127,15 +127,24 @@ function setupEventListeners() {
     if(contactOverlay) contactOverlay.addEventListener('click', (e) => { if(e.target === contactOverlay) contactOverlay.classList.remove('active'); });
 
     if(contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const type = document.getElementById('contact-type').value;
-            const detail = document.getElementById('contact-detail').value;
-            const subject = encodeURIComponent(`【白鷺祭用語集】${type}`);
-            const body = encodeURIComponent(`種別: ${type}\n\n詳細:\n${detail}\n\n----------------\n送信日: ${new Date().toLocaleDateString()}`);
-            window.location.href = `mailto:sw23263n@st.omu.ac.jp?subject=${subject}&body=${body}`;
-        });
-    }
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const type = document.getElementById('contact-type').value;
+                const detail = document.getElementById('contact-detail').value;
+                
+                // 件名
+                const subject = encodeURIComponent(`【白鷺祭用語集】${type}`);
+                
+                // 本文作成
+                // ポイント: モバイル対応のため、改行(\n)を \r\n に置換してからエンコードする
+                let bodyText = `種別: ${type}\n\n詳細:\n${detail}\n\n----------------\n送信日: ${new Date().toLocaleDateString()}`;
+                
+                // 正規表現で \n を \r\n に置換
+                const body = encodeURIComponent(bodyText.replace(/\n/g, "\r\n"));
+                
+                window.location.href = `mailto:info@shirasagisai.com?subject=${subject}&body=${body}`;
+            });
+        }
 }
 
 // --- 3. 画面遷移 ---
