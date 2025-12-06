@@ -13,6 +13,7 @@ const listContainer = document.getElementById('result-list');
 const noResultMsg = document.getElementById('no-result');
 const resultCountSpan = document.getElementById('result-count');
 const homeFavoritesList = document.getElementById('home-favorites-list');
+const modalFavBtn = document.getElementById('modal-fav-btn');
 
 // --- データ管理 ---
 let termsData = [];
@@ -280,6 +281,31 @@ function openModal(item) {
     document.getElementById('modal-term').textContent = item.term;
     document.getElementById('modal-description').innerHTML = item.description.replace(/\n/g, '<br>');
     document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${t}">${t}</span>`).join('');
+    
+    // ▼▼▼ 追加: お気に入りボタンの状態設定 ▼▼▼
+    updateModalFavBtn(item.id);
+
+    // ボタンクリック時の挙動設定
+    // (無名関数で包んで、現在のitem.idを渡せるようにする)
+    modalFavBtn.onclick = (e) => {
+        // グローバルのtoggleFavを呼んでデータを更新
+        toggleFav(e, item.id);
+        
+        // モーダル上のボタン見た目を即時更新
+        updateModalFavBtn(item.id);
+    };
+    
     overlay.classList.add('active');
 }
+
+function updateModalFavBtn(id) {
+    if (favoriteIds.includes(id)) {
+        modalFavBtn.classList.add('active');
+        modalFavBtn.textContent = '★';
+    } else {
+        modalFavBtn.classList.remove('active');
+        modalFavBtn.textContent = '☆';
+    }
+}
+
 function closeModal() { document.getElementById('modal-overlay').classList.remove('active'); }
