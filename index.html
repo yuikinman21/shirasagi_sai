@@ -13,7 +13,7 @@
     <div class="home-content">
         <div class="logo-area">
             <div class="logo-icon">🦢</div>
-            <h1 class="app-title">白鷺祭用語集<br><span class="subtitle">サギ用語検索</span></h1>
+            <h1 class="app-title">白鷺祭<br><span class="subtitle">サギ用語検索</span></h1>
         </div>
 
         <div class="home-search-wrapper">
@@ -24,13 +24,17 @@
         <div class="home-categories">
             <p class="cat-label">カテゴリから探す</p>
             <div class="cat-grid">
-                <button class="cat-card" data-cat="favorites">⭐ お気に入り</button>
+                <button class="cat-card" data-cat="favorites">★ お気に入り</button>
                 <button class="cat-card" data-cat="四役">👑 四役</button>
                 <button class="cat-card" data-cat="企画部">🎉 企画部</button>
                 <button class="cat-card" data-cat="情報部">💻 情報部</button>
                 <button class="cat-card" data-cat="技術部">🛠 技術部</button>
                 <button class="cat-card" data-cat="渉外部">🤝 渉外部</button>
             </div>
+        </div>
+
+        <div class="home-footer">
+            <button id="open-contact-btn" class="text-link-btn">⚠️ 用語追加・不具合報告はこちら</button>
         </div>
     </div>
 </div>
@@ -49,7 +53,7 @@
         <div id="tag-container" class="categories-scroll">
             <div class="chip" data-cat="favorites" style="font-weight:bold;">★ お気に入り</div>
             <div class="chip active" data-cat="all">すべて</div>
-
+            
             <div class="chip" data-cat="四役">四役</div>
             <div class="chip" data-cat="企画部">企画部</div>
             <div class="chip" data-cat="情報部">情報部</div>
@@ -92,6 +96,36 @@
         </div>
         <div class="modal-body">
             <p id="modal-description">ここに詳細説明が入ります。</p>
+        </div>
+    </div>
+</div>
+
+<div id="contact-overlay" class="modal-overlay hidden">
+    <div class="modal-card">
+        <button id="contact-close-btn" class="modal-close-btn">×</button>
+        <div class="modal-header">
+            <h2>お問い合わせ</h2>
+        </div>
+        <div class="modal-body">
+            <p class="contact-desc">
+                用語の追加・修正依頼やアプリのバグは、<br>こちらから情報部へご報告ください。
+            </p>
+            <form id="contact-form" class="contact-form">
+                <div class="form-group">
+                    <label>種別</label>
+                    <select id="contact-type">
+                        <option value="追加申請">用語の追加申請</option>
+                        <option value="修正依頼">用語の修正依頼</option>
+                        <option value="バグ報告">アプリのバグ報告</option>
+                        <option value="その他">その他</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>詳細内容</label>
+                    <textarea id="contact-detail" placeholder="追加したい用語名や内容、修正箇所などを入力してください..." rows="5"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">メールアプリを起動</button>
+            </form>
         </div>
     </div>
 </div>

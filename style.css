@@ -24,11 +24,10 @@ body {
 .view-container {
     width: 100vw;
     min-height: 100vh;
-    transition: opacity 0.3s ease, transform 0.3s ease;
     position: absolute;
     top: 0; left: 0;
     background: var(--bg-body);
-
+    
     transition: 
         opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
         transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
@@ -39,15 +38,13 @@ body {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    /* 奥に沈んで消えるような演出 */
-    transform: scale(0.95); 
+    transform: scale(0.95);
 }
 
 .view-container.active {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    /* 元のサイズに戻る */
     transform: scale(1);
     z-index: 10;
 }
@@ -92,7 +89,6 @@ body {
     background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer;
 }
 
-/* ④ ホーム画面のお気に入りリスト */
 .home-favorites {
     width: 100%; max-width: 400px; margin-bottom: 30px;
 }
@@ -118,28 +114,36 @@ body {
 .cat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--primary); }
 
 .cat-card[data-cat="favorites"] {
-    background-color: #fffde7;
-    color: #f57f17;
-    border-color: #fff59d;
-    font-weight: bold;
+    background-color: #fffde7; color: #f57f17; border-color: #fff59d; font-weight: bold;
 }
 .cat-card[data-cat="favorites"]:hover {
-    background-color: #fff9c4;
-    border-color: #fdd835;
-    box-shadow: 0 4px 12px rgba(253, 216, 53, 0.2);
+    background-color: #fff9c4; border-color: #fdd835; box-shadow: 0 4px 12px rgba(253, 216, 53, 0.2);
 }
 
-/* --- 2. 検索結果画面スタイル --- */
+/* ▼▼▼ 追加: ホーム画面フッター（お問い合わせ） ▼▼▼ */
+.home-footer {
+    margin-top: 40px;
+    text-align: center;
+}
+.text-link-btn {
+    background: none;
+    border: none;
+    color: var(--text-sub);
+    font-size: 13px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 10px;
+}
+.text-link-btn:hover { color: var(--primary); }
 
-/* ヘッダー固定 */
+
+/* --- 2. 検索結果画面スタイル --- */
 .result-header {
     background: rgba(255,255,255,0.95);
     backdrop-filter: blur(10px);
     padding: 10px 16px;
     display: flex; align-items: center; gap: 10px;
-    position: sticky; /* 固定 */
-    top: 0;
-    z-index: 110;
+    position: sticky; top: 0; z-index: 110;
     border-bottom: 1px solid #eee;
 }
 
@@ -154,11 +158,8 @@ body {
 }
 #result-input:focus { background: white; border-color: var(--primary); }
 
-/* ① フィルターバー (スティッキー & 伸縮) */
 .filter-bar {
-    position: sticky; /* ヘッダーの下に固定 */
-    top: 58px; /* ヘッダーの高さ分下げる */
-    z-index: 105;
+    position: sticky; top: 58px; z-index: 105;
     background: var(--white);
     padding: 8px 16px;
     border-bottom: 1px solid #eee;
@@ -166,31 +167,14 @@ body {
     transition: all 0.3s ease;
 }
 
-/* デフォルト：横スクロール (1行) */
 .categories-scroll {
-    display: flex;
-    flex-wrap: nowrap; /* 折り返さない */
-    overflow-x: auto;  /* 横スクロール */
-    gap: 8px;
-    padding-bottom: 4px;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-
-    max-height: 40px; /* 1行分の高さ目安 */
-    transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    max-height: 40px; transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .categories-scroll::-webkit-scrollbar { display: none; }
+.categories-scroll.expanded { flex-wrap: wrap; overflow-x: visible; justify-content: center; max-height: 500px; }
 
-/* 展開時：全表示 (折り返し) */
-.categories-scroll.expanded {
-    flex-wrap: wrap;
-    overflow-x: visible;
-    justify-content: center;
-
-    max-height: 500px;
-}
-
-/* 開閉ボタン */
 .filter-toggle-btn {
     display: flex; justify-content: center; align-items: center;
     width: 100%; margin-top: 4px; padding: 4px;
@@ -198,47 +182,25 @@ body {
     font-size: 11px; color: #888; cursor: pointer;
 }
 .filter-toggle-btn::before { content: "▼ タグをすべて見る"; }
-/* 展開時のボタン表記 */
 .categories-scroll.expanded + .filter-toggle-btn::before { content: "▲ 閉じる"; }
 
 .chip {
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 13px;
-    border: 1px solid #eee;
-    background: var(--white);
-    color: var(--text-sub);
-    white-space: nowrap;
-    cursor: pointer;
-    transition: 0.2s;
-    user-select: none;
-    flex-shrink: 0;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px;
+    border: 1px solid #eee; background: var(--white); color: var(--text-sub);
+    white-space: nowrap; cursor: pointer; transition: 0.2s; user-select: none; flex-shrink: 0;
 }
+.chip.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 6px rgba(0, 86, 179, 0.2); }
+.chip[data-cat="favorites"].active { background: #ffecb3; color: #f57f17; border-color: #ffe082; box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3); }
+.chip[data-cat="favorites"] { color: #fbc02d; border-color: #fff8e1; }
 
-/* 通常のチップのアクティブ状態 (青) */
-.chip.active {
-    background: var(--primary);
-    color: white;
-    border-color: var(--primary);
-    box-shadow: 0 2px 6px rgba(0, 86, 179, 0.2);
-}
-
-/* ▼▼▼ 追加: お気に入りチップのアクティブ状態 (黄色) ▼▼▼ */
-.chip[data-cat="favorites"].active {
-    background: #ffecb3; /* 薄い黄色 */
-    color: #f57f17;      /* 濃いオレンジ */
-    border-color: #ffe082;
-    box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3);
-}
-.chip[data-cat="favorites"] {
-    color: #fbc02d; /* 非選択時も少し黄色っぽく文字色をつける */
-    border-color: #fff8e1;
-}
-
-/* リスト部分 */
 .scrollable-content { padding: 16px; padding-bottom: 80px; }
 .result-count-area { font-size: 12px; color: var(--text-sub); margin-bottom: 10px; text-align: right; }
 #result-list { list-style: none; padding: 0; margin: 0; }
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 .item {
     background: var(--white);
@@ -247,63 +209,32 @@ body {
     box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     cursor: pointer;
     border: 1px solid transparent;
-    position: relative; /* ☆ボタン配置用 */
+    position: relative;
     transition: transform 0.2s;
+    animation: fadeInUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 .item:active { transform: scale(0.98); background: #fafafa; }
 
-/* ④ お気に入りボタン (☆) */
 .fav-btn {
     position: absolute; top: 12px; right: 12px;
-    width: 30px; height: 30px;
-    border: none; background: none;
-    font-size: 20px; color: #ddd; /* 未登録 */
-    cursor: pointer; z-index: 5; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s;
+    width: 30px; height: 30px; border: none; background: none;
+    font-size: 20px; color: #ddd; cursor: pointer; z-index: 5; padding: 0;
+    display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
 }
-.fav-btn.active {
-    color: #f1c40f; /* 登録済み(黄色) */
-    text-shadow: 0 2px 5px rgba(241, 196, 15, 0.4);
-    transform: scale(1.1);
-}
+.fav-btn.active { color: #f1c40f; text-shadow: 0 2px 5px rgba(241, 196, 15, 0.4); transform: scale(1.1); }
 
 .item-header-row {
-display: flex;
-    flex-direction: column; /* ★変更: 常に縦並びにする */
-    align-items: flex-start; /* 左揃え */
-    justify-content: flex-start;
-    gap: 8px; /* タイトルとタグの間隔 */
-    margin-bottom: 8px;
-    
-    /* 星ボタン(約30px)と被らないように右に余白を空ける */
-    padding-right: 40px;
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
+    gap: 8px; margin-bottom: 8px; padding-right: 40px;
 }
-
-.term {
-    font-size: 17px;
-    font-weight: bold;
-    color: var(--text-main);
-    width: 100%; /* 横幅いっぱいに使う */
-    line-height: 1.4;
-}
-
+.term { font-size: 17px; font-weight: bold; color: var(--text-main); width: 100%; line-height: 1.4; }
 .reading { font-size: 11px; color: var(--text-sub); margin-left: 6px; font-weight: normal;}
-
-/* ② クリック可能なタグ */
 .category-badge {
     font-size: 10px; padding: 3px 8px; border-radius: 4px; white-space: nowrap; font-weight: bold;
     cursor: pointer; transition: opacity 0.2s;
 }
 .category-badge:active { opacity: 0.6; }
-
-.badges-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px; /* バッジ同士の間隔 */
-    width: 100%;
-    justify-content: flex-start; /* 左揃え */
-}
+.badges-wrapper { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; justify-content: flex-start; }
 .description { font-size: 13px; color: #555; margin-top: 8px; line-height: 1.5; }
 .highlight-text { background: transparent; border-bottom: 2px solid #ffd700; font-weight: bold; padding: 0 1px; }
 
@@ -325,64 +256,48 @@ display: flex;
 }
 .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
 .modal-close-btn {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 32px;
-    height: 32px;
-    border: none;
-    background: #f0f2f5;
-    border-radius: 50%;
-    font-size: 20px;
-    color: var(--text-sub);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.2s;
+    position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border: none;
+    background: #f0f2f5; border-radius: 50%; font-size: 20px; color: var(--text-sub); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: 0.2s;
 }
-.modal-fav-btn {
-    position: absolute;
-    top: 16px;
-    right: 60px; /* 閉じるボタンの左隣に配置 */
-    width: 32px; height: 32px;
-    border: none;
-    background: #f0f2f5; /* 閉じるボタンと同じグレー背景 */
-    border-radius: 50%;
-    font-size: 20px;
-    color: #ccc; /* 未登録時はグレー */
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s;
-    z-index: 10;
-}
-
-.modal-fav-btn.active {
-    color: #f1c40f; /* 黄色 */
-    background: #fff9c4; /* 薄い黄色背景で強調 */
-    box-shadow: 0 2px 5px rgba(241, 196, 15, 0.3);
-    transform: scale(1.1);
-}
-
-
 .modal-close-btn:hover { background: #e4e6eb; color: var(--text-main); }
+.modal-fav-btn {
+    position: absolute; top: 16px; right: 60px;
+    width: 32px; height: 32px; border: none; background: #f0f2f5;
+    border-radius: 50%; font-size: 20px; color: #ccc; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10;
+}
+.modal-fav-btn.active {
+    color: #f1c40f; background: #fff9c4; box-shadow: 0 2px 5px rgba(241, 196, 15, 0.3); transform: scale(1.1);
+}
 .modal-fav-btn:active { transform: scale(0.95); }
 .modal-header { margin-bottom: 16px; padding-right: 30px; }
 #modal-term { margin: 0 0 8px 0; font-size: 24px; color: var(--text-main); }
 .modal-body { font-size: 15px; color: #555; line-height: 1.7; max-height: 60vh; overflow-y: auto; }
 
+/* ▼▼▼ 追加: お問い合わせフォームのスタイル ▼▼▼ */
+.contact-desc { font-size: 14px; color: #555; margin-bottom: 20px; text-align: center; }
+.contact-form { display: flex; flex-direction: column; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-size: 13px; font-weight: bold; color: var(--text-main); }
+.form-group select, .form-group textarea {
+    padding: 10px; border: 1px solid #ddd; border-radius: 8px;
+    font-size: 14px; background: #f9f9f9; outline: none;
+}
+.form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: #fff; }
+.submit-btn {
+    margin-top: 10px; padding: 12px; background: var(--primary); color: #fff;
+    border: none; border-radius: 24px; font-weight: bold; font-size: 15px;
+    cursor: pointer; transition: 0.2s;
+}
+.submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 
-/* --- 部局別タグカラー設定 --- */
+/* 部局別タグカラー */
 .category-badge[data-tag="四役"] { background-color: #fff9c4; color: #f57f17; }
 .category-badge[data-tag="企画部"] { background-color: #fce4ec; color: #c2185b; }
 .category-badge[data-tag="情報部"] { background-color: #e1f5fe; color: #0277bd; }
 .category-badge[data-tag="渉外部"] { background-color: #f3e5f5; color: #7b1fa2; }
 .category-badge[data-tag="技術部"] { background-color: #e8f5e9; color: #2e7d32; }
-
-.category-badge[data-tag="機材"],
-.category-badge[data-tag="物品"],
-.category-badge[data-tag="作業"],
-.category-badge[data-tag="場所"] { background-color: #eceff1; color: #37474f; }
-.category-badge[data-tag="新歓"],
-.category-badge[data-tag="本祭典"] { background-color: #fff3e0; color: #ef6c00; }
+.category-badge[data-tag="機材"], .category-badge[data-tag="物品"], .category-badge[data-tag="作業"], .category-badge[data-tag="場所"] { background-color: #eceff1; color: #37474f; }
+.category-badge[data-tag="新歓"], .category-badge[data-tag="本祭典"] { background-color: #fff3e0; color: #ef6c00; }
 .category-badge[data-tag="その他"] { background-color: #f5f5f5; color: #616161; }

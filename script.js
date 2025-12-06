@@ -2,9 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
     loadFavorites();
     setupEventListeners();
-    // 初期表示時にも判定を行う
-    // (データ読み込み完了後にも実行されるよう renderList 内などでも呼ばれるべきですが
-    //  タグ自体はHTMLに静的に書かれているためここでOKです)
     checkTagOverflow();
 });
 
@@ -18,13 +15,19 @@ const noResultMsg = document.getElementById('no-result');
 const resultCountSpan = document.getElementById('result-count');
 const homeFavoritesList = document.getElementById('home-favorites-list');
 
-// モーダル関連
+// モーダル関連 (用語詳細)
 const modalOverlay = document.getElementById('modal-overlay');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalTerm = document.getElementById('modal-term');
 const modalBadges = document.getElementById('modal-badges');
 const modalDescription = document.getElementById('modal-description');
 const modalFavBtn = document.getElementById('modal-fav-btn');
+
+// ▼▼▼ 追加: お問い合わせモーダル関連 ▼▼▼
+const contactOverlay = document.getElementById('contact-overlay');
+const contactCloseBtn = document.getElementById('contact-close-btn');
+const openContactBtn = document.getElementById('open-contact-btn');
+const contactForm = document.getElementById('contact-form');
 
 // --- データ管理 ---
 let termsData = [];
@@ -47,7 +50,6 @@ async function init() {
 
 // --- 2. イベント設定 ---
 function setupEventListeners() {
-    // 検索入力
     [homeInput, resultInput].forEach(input => {
         if(input) {
             input.addEventListener('input', (e) => {
@@ -64,7 +66,6 @@ function setupEventListeners() {
         if(homeInput.value.trim()) goToResults(homeInput.value);
     });
 
-    // タグエリアの開閉ボタン
     const expandBtn = document.getElementById('filter-expand-btn');
     const tagContainer = document.getElementById('tag-container');
     if(expandBtn && tagContainer) {
@@ -72,8 +73,6 @@ function setupEventListeners() {
             tagContainer.classList.toggle('expanded');
         });
     }
-
-    // ▼▼▼ 追加: 画面サイズが変わった時にタグのはみ出しを再チェック ▼▼▼
     window.addEventListener('resize', checkTagOverflow);
 
     // タグ選択
@@ -110,8 +109,44 @@ function setupEventListeners() {
     const resetBtn = document.getElementById('reset-search-btn');
     if(resetBtn) resetBtn.addEventListener('click', () => { selectedTags.clear(); goToResults("", "all"); });
 
+    // 用語詳細モーダル閉じる
     if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
     if(modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
+
+    // ▼▼▼ 追加: お問い合わせモーダル制御 ▼▼▼
+    if(openContactBtn) {
+        openContactBtn.addEventListener('click', () => {
+            contactOverlay.classList.add('active');
+        });
+    }
+    if(contactCloseBtn) {
+        contactCloseBtn.addEventListener('click', () => {
+            contactOverlay.classList.remove('active');
+        });
+    }
+    if(contactOverlay) {
+        contactOverlay.addEventListener('click', (e) => {
+            if(e.target === contactOverlay) contactOverlay.classList.remove('active');
+        });
+    }
+
+    // ▼▼▼ 追加: フォーム送信（メールアプリ起動） ▼▼▼
+    if(contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = document.getElementById('contact-type').value;
+            const detail = document.getElementById('contact-detail').value;
+            
+            // 件名と本文を作成
+            const subject = encodeURIComponent(`【白鷺祭用語集】${type}`);
+            const body = encodeURIComponent(`種別: ${type}\n\n詳細:\n${detail}\n\n----------------\n送信日: ${new Date().toLocaleDateString()}`);
+            
+            // 送信先 (ダミーアドレスを入れています。実際のアドレスに変更してください)
+            const mailToLink = `mailto:sw23263n@st.omu.ac.jp?subject=${subject}&body=${body}`;
+            
+            window.location.href = mailToLink;
+        });
+    }
 }
 
 // --- 3. 画面遷移 ---
@@ -129,11 +164,7 @@ function goToResults(query) {
     
     const tagContainer = document.getElementById('tag-container');
     if(tagContainer) tagContainer.classList.remove('expanded');
-    
-    // 画面遷移時にタグのあふれチェックを実行
-    // (アニメーション完了後の方が確実ですが、即時でも概ね機能します)
     setTimeout(checkTagOverflow, 100);
-
     window.scrollTo(0, 0);
 }
 
@@ -142,7 +173,6 @@ function goToHome() {
     if(resultInput) resultInput.value = '';
     selectedTags.clear();
     renderHomeFavorites();
-    
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewHome.classList.remove('hidden'); viewHome.classList.add('active');
 }
@@ -205,35 +235,18 @@ function renderList() {
 }
 
 // --- ヘルパー ---
-
-// ▼▼▼ 追加: タグのあふれ判定関数 ▼▼▼
 function checkTagOverflow() {
     const tagContainer = document.getElementById('tag-container');
     const expandBtn = document.getElementById('filter-expand-btn');
     if (!tagContainer || !expandBtn) return;
-
-    // 現在展開中かどうかを記憶
     const wasExpanded = tagContainer.classList.contains('expanded');
-
-    // 一旦クラスを外して「1行の状態」での幅を計測する
     tagContainer.classList.remove('expanded');
-
-    // scrollWidth(中身の幅) > clientWidth(表示幅) ならあふれている
-    // 1pxの余裕を持たせる
     const hasOverflow = tagContainer.scrollWidth > tagContainer.clientWidth + 1;
-
-    // あふれている場合
     if (hasOverflow) {
-        expandBtn.style.display = 'flex'; // ボタンを表示
-        // もともと展開していたなら、展開状態に戻す
-        if (wasExpanded) {
-            tagContainer.classList.add('expanded');
-        }
-    } 
-    // あふれていない（すべて収まっている）場合
-    else {
-        expandBtn.style.display = 'none'; // ボタンを隠す
-        // 展開する必要がないので expanded クラスは外したままにする
+        expandBtn.style.display = 'flex';
+        if (wasExpanded) tagContainer.classList.add('expanded');
+    } else {
+        expandBtn.style.display = 'none';
     }
 }
 
@@ -250,10 +263,7 @@ window.toggleFav = function(e, id) {
     if (favoriteIds.includes(id)) favoriteIds = favoriteIds.filter(f => f !== id);
     else favoriteIds.push(id);
     localStorage.setItem('shirasagi_favs', JSON.stringify(favoriteIds));
-    
-    if (selectedTags.has('favorites')) renderList();
-    else renderList();
-    
+    if (selectedTags.has('favorites')) renderList(); else renderList();
     renderHomeFavorites();
 };
 
