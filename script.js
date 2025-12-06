@@ -15,7 +15,7 @@ const noResultMsg = document.getElementById('no-result');
 const resultCountSpan = document.getElementById('result-count');
 const homeFavoritesList = document.getElementById('home-favorites-list');
 
-// モーダル関連 (用語詳細)
+// モーダル関連
 const modalOverlay = document.getElementById('modal-overlay');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalTerm = document.getElementById('modal-term');
@@ -23,7 +23,7 @@ const modalBadges = document.getElementById('modal-badges');
 const modalDescription = document.getElementById('modal-description');
 const modalFavBtn = document.getElementById('modal-fav-btn');
 
-// ▼▼▼ 追加: お問い合わせモーダル関連 ▼▼▼
+// お問い合わせ関連
 const contactOverlay = document.getElementById('contact-overlay');
 const contactCloseBtn = document.getElementById('contact-close-btn');
 const openContactBtn = document.getElementById('open-contact-btn');
@@ -66,11 +66,20 @@ function setupEventListeners() {
         if(homeInput.value.trim()) goToResults(homeInput.value);
     });
 
+    // ▼▼▼ タグエリアの開閉ボタン ▼▼▼
     const expandBtn = document.getElementById('filter-expand-btn');
     const tagContainer = document.getElementById('tag-container');
     if(expandBtn && tagContainer) {
         expandBtn.addEventListener('click', () => {
             tagContainer.classList.toggle('expanded');
+            
+            // ボタンのテキスト切り替え
+            const textSpan = expandBtn.querySelector('.btn-text');
+            if(tagContainer.classList.contains('expanded')) {
+                textSpan.textContent = '閉じる';
+            } else {
+                textSpan.textContent = 'タグをすべて見る';
+            }
         });
     }
     window.addEventListener('resize', checkTagOverflow);
@@ -87,13 +96,11 @@ function setupEventListeners() {
                 
                 if (chip.classList.contains('cat-card')) {
                     selectedTags.clear(); selectedTags.add(tag);
-                    goToResults("");
-                    return;
+                    goToResults(""); return;
                 }
 
-                if (tag === 'all') {
-                    selectedTags.clear();
-                } else {
+                if (tag === 'all') { selectedTags.clear(); }
+                else {
                     if (selectedTags.has(tag)) selectedTags.delete(tag);
                     else selectedTags.add(tag);
                 }
@@ -109,42 +116,22 @@ function setupEventListeners() {
     const resetBtn = document.getElementById('reset-search-btn');
     if(resetBtn) resetBtn.addEventListener('click', () => { selectedTags.clear(); goToResults("", "all"); });
 
-    // 用語詳細モーダル閉じる
     if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
     if(modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
 
-    // ▼▼▼ 追加: お問い合わせモーダル制御 ▼▼▼
-    if(openContactBtn) {
-        openContactBtn.addEventListener('click', () => {
-            contactOverlay.classList.add('active');
-        });
-    }
-    if(contactCloseBtn) {
-        contactCloseBtn.addEventListener('click', () => {
-            contactOverlay.classList.remove('active');
-        });
-    }
-    if(contactOverlay) {
-        contactOverlay.addEventListener('click', (e) => {
-            if(e.target === contactOverlay) contactOverlay.classList.remove('active');
-        });
-    }
+    // お問い合わせ
+    if(openContactBtn) openContactBtn.addEventListener('click', () => contactOverlay.classList.add('active'));
+    if(contactCloseBtn) contactCloseBtn.addEventListener('click', () => contactOverlay.classList.remove('active'));
+    if(contactOverlay) contactOverlay.addEventListener('click', (e) => { if(e.target === contactOverlay) contactOverlay.classList.remove('active'); });
 
-    // ▼▼▼ 追加: フォーム送信（メールアプリ起動） ▼▼▼
     if(contactForm) {
         contactForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const type = document.getElementById('contact-type').value;
             const detail = document.getElementById('contact-detail').value;
-            
-            // 件名と本文を作成
             const subject = encodeURIComponent(`【白鷺祭用語集】${type}`);
             const body = encodeURIComponent(`種別: ${type}\n\n詳細:\n${detail}\n\n----------------\n送信日: ${new Date().toLocaleDateString()}`);
-            
-            // 送信先 (ダミーアドレスを入れています。実際のアドレスに変更してください)
-            const mailToLink = `mailto:sw23263n@st.omu.ac.jp?subject=${subject}&body=${body}`;
-            
-            window.location.href = mailToLink;
+            window.location.href = `mailto:info@shirasagisai.com?subject=${subject}&body=${body}`;
         });
     }
 }
@@ -163,7 +150,14 @@ function goToResults(query) {
     viewResults.classList.remove('hidden'); viewResults.classList.add('active');
     
     const tagContainer = document.getElementById('tag-container');
-    if(tagContainer) tagContainer.classList.remove('expanded');
+    if(tagContainer) {
+        tagContainer.classList.remove('expanded');
+        // 遷移時にボタンのテキストとアイコンを元に戻す
+        const expandBtn = document.getElementById('filter-expand-btn');
+        if(expandBtn) {
+            expandBtn.querySelector('.btn-text').textContent = 'タグをすべて見る';
+        }
+    }
     setTimeout(checkTagOverflow, 100);
     window.scrollTo(0, 0);
 }

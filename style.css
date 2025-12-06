@@ -20,7 +20,7 @@ body {
     overflow-x: hidden;
 }
 
-/* --- ビュー切り替え制御 --- */
+/* --- ビュー切り替え制御 (スマートなフェード遷移) --- */
 .view-container {
     width: 100vw;
     min-height: 100vh;
@@ -28,9 +28,10 @@ body {
     top: 0; left: 0;
     background: var(--bg-body);
     
+    /* 0.4秒かけて滑らかに変化 */
     transition: 
-        opacity 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-        transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
         visibility 0.4s;
 }
 
@@ -38,7 +39,8 @@ body {
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: scale(0.95);
+    /* 画面奥へ少し沈むような動き */
+    transform: scale(0.98);
 }
 
 .view-container.active {
@@ -51,55 +53,31 @@ body {
 
 /* --- 1. ホーム画面スタイル --- */
 .home-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 90vh;
-    padding: 20px;
-    box-sizing: border-box;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    min-height: 90vh; padding: 20px; box-sizing: border-box;
 }
-
 .logo-area { text-align: center; margin-bottom: 30px; }
 .logo-icon { font-size: 64px; margin-bottom: 10px; }
 .app-title { font-size: 28px; margin: 0; color: var(--primary); letter-spacing: 0.1em; }
 .subtitle { font-size: 14px; color: var(--text-sub); font-weight: normal; }
 
-.home-search-wrapper {
-    width: 100%;
-    max-width: 400px;
-    position: relative;
-    margin-bottom: 30px;
-}
+.home-search-wrapper { width: 100%; max-width: 400px; position: relative; margin-bottom: 30px; }
 .search-input-lg {
-    width: 100%;
-    padding: 16px 20px;
-    border-radius: 30px;
-    border: 1px solid #ddd;
-    font-size: 16px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    outline: none;
-    transition: 0.3s;
-    box-sizing: border-box;
+    width: 100%; padding: 16px 20px; border-radius: 30px; border: 1px solid #ddd;
+    font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); outline: none; transition: 0.3s; box-sizing: border-box;
 }
 .search-input-lg:focus { border-color: var(--primary); box-shadow: 0 4px 16px rgba(0, 86, 179, 0.2); }
 .search-btn-primary {
-    position: absolute; right: 6px; top: 6px; bottom: 6px;
-    padding: 0 20px; border-radius: 24px;
+    position: absolute; right: 6px; top: 6px; bottom: 6px; padding: 0 20px; border-radius: 24px;
     background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer;
 }
 
-.home-favorites {
-    width: 100%; max-width: 400px; margin-bottom: 30px;
-}
+.home-favorites { width: 100%; max-width: 400px; margin-bottom: 30px; }
 .favorites-list { list-style: none; padding: 0; margin: 0; }
 .fav-item {
-    background: #fff; padding: 12px 16px; margin-bottom: 8px;
-    border-radius: 12px; border: 1px solid #eee;
-    font-size: 14px; font-weight: bold; color: var(--text-main);
-    cursor: pointer;
-    display: flex; justify-content: space-between; align-items: center;
-    transition: 0.2s;
+    background: #fff; padding: 12px 16px; margin-bottom: 8px; border-radius: 12px; border: 1px solid #eee;
+    font-size: 14px; font-weight: bold; color: var(--text-main); cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
 }
 .fav-item:active { transform: scale(0.98); background: #fafafa; }
 .no-fav-msg { font-size: 13px; color: #aaa; text-align: center; padding: 10px; }
@@ -112,82 +90,64 @@ body {
     font-size: 14px; color: var(--text-main); cursor: pointer; transition: 0.2s;
 }
 .cat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--primary); }
+.cat-card[data-cat="favorites"] { background-color: #fffde7; color: #f57f17; border-color: #fff59d; font-weight: bold; }
+.cat-card[data-cat="favorites"]:hover { background-color: #fff9c4; border-color: #fdd835; box-shadow: 0 4px 12px rgba(253, 216, 53, 0.2); }
 
-.cat-card[data-cat="favorites"] {
-    background-color: #fffde7; color: #f57f17; border-color: #fff59d; font-weight: bold;
-}
-.cat-card[data-cat="favorites"]:hover {
-    background-color: #fff9c4; border-color: #fdd835; box-shadow: 0 4px 12px rgba(253, 216, 53, 0.2);
-}
-
-/* ▼▼▼ 追加: ホーム画面フッター（お問い合わせ） ▼▼▼ */
-.home-footer {
-    margin-top: 40px;
-    text-align: center;
-}
+.home-footer { margin-top: 40px; text-align: center; }
 .text-link-btn {
-    background: none;
-    border: none;
-    color: var(--text-sub);
-    font-size: 13px;
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 10px;
+    background: none; border: none; color: var(--text-sub); font-size: 13px;
+    text-decoration: underline; cursor: pointer; padding: 10px;
 }
 .text-link-btn:hover { color: var(--primary); }
 
 
 /* --- 2. 検索結果画面スタイル --- */
 .result-header {
-    background: rgba(255,255,255,0.95);
-    backdrop-filter: blur(10px);
-    padding: 10px 16px;
-    display: flex; align-items: center; gap: 10px;
-    position: sticky; top: 0; z-index: 110;
-    border-bottom: 1px solid #eee;
+    background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 16px;
+    display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 110; border-bottom: 1px solid #eee;
 }
-
-.back-btn {
-    background: none; border: none; font-size: 32px; color: var(--primary);
-    cursor: pointer; padding: 0 8px; line-height: 1;
-}
+.back-btn { background: none; border: none; font-size: 32px; color: var(--primary); cursor: pointer; padding: 0 8px; line-height: 1; }
 .header-search-box { flex: 1; }
-#result-input {
-    width: 100%; padding: 10px 14px; border-radius: 8px;
-    border: 1px solid #eee; background: #f0f2f5; font-size: 14px; outline: none; box-sizing: border-box;
-}
+#result-input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #eee; background: #f0f2f5; font-size: 14px; outline: none; box-sizing: border-box; }
 #result-input:focus { background: white; border-color: var(--primary); }
 
 .filter-bar {
-    position: sticky; top: 58px; z-index: 105;
-    background: var(--white);
-    padding: 8px 16px;
-    border-bottom: 1px solid #eee;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    position: sticky; top: 58px; z-index: 105; background: var(--white);
+    padding: 8px 16px; border-bottom: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     transition: all 0.3s ease;
 }
 
+/* タグエリア (スムーズな開閉) */
 .categories-scroll {
     display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding-bottom: 4px;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
-    max-height: 40px; transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    max-height: 40px;
+    /* 高さの変化を滑らかに */
+    transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .categories-scroll::-webkit-scrollbar { display: none; }
 .categories-scroll.expanded { flex-wrap: wrap; overflow-x: visible; justify-content: center; max-height: 500px; }
 
+/* ▼▼▼ 開閉ボタン（アイコン回転） ▼▼▼ */
 .filter-toggle-btn {
-    display: flex; justify-content: center; align-items: center;
-    width: 100%; margin-top: 4px; padding: 4px;
+    display: flex; justify-content: center; align-items: center; gap: 6px;
+    width: 100%; margin-top: 4px; padding: 6px;
     background: none; border: none;
-    font-size: 11px; color: #888; cursor: pointer;
+    font-size: 12px; color: #888; font-weight: bold; cursor: pointer;
 }
-.filter-toggle-btn::before { content: "▼ タグをすべて見る"; }
-.categories-scroll.expanded + .filter-toggle-btn::before { content: "▲ 閉じる"; }
+.btn-icon {
+    display: inline-block;
+    transition: transform 0.3s ease; /* アイコンの回転アニメーション */
+}
+/* 展開時はアイコンを180度回転 */
+.categories-scroll.expanded + .filter-toggle-btn .btn-icon {
+    transform: rotate(180deg);
+}
 
 .chip {
-    padding: 6px 14px; border-radius: 6px; font-size: 13px;
-    border: 1px solid #eee; background: var(--white); color: var(--text-sub);
-    white-space: nowrap; cursor: pointer; transition: 0.2s; user-select: none; flex-shrink: 0;
+    padding: 6px 14px; border-radius: 6px; font-size: 13px; border: 1px solid #eee;
+    background: var(--white); color: var(--text-sub); white-space: nowrap;
+    cursor: pointer; transition: 0.2s; user-select: none; flex-shrink: 0;
 }
 .chip.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 6px rgba(0, 86, 179, 0.2); }
 .chip[data-cat="favorites"].active { background: #ffecb3; color: #f57f17; border-color: #ffe082; box-shadow: 0 2px 6px rgba(255, 193, 7, 0.3); }
@@ -201,32 +161,22 @@ body {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 .item {
-    background: var(--white);
-    padding: 16px; margin-bottom: 12px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    cursor: pointer;
-    border: 1px solid transparent;
-    position: relative;
+    background: var(--white); padding: 16px; margin-bottom: 12px; border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid transparent; position: relative;
     transition: transform 0.2s;
     animation: fadeInUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 .item:active { transform: scale(0.98); background: #fafafa; }
 
 .fav-btn {
-    position: absolute; top: 12px; right: 12px;
-    width: 30px; height: 30px; border: none; background: none;
+    position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border: none; background: none;
     font-size: 20px; color: #ddd; cursor: pointer; z-index: 5; padding: 0;
     display: flex; align-items: center; justify-content: center; transition: transform 0.2s;
 }
 .fav-btn.active { color: #f1c40f; text-shadow: 0 2px 5px rgba(241, 196, 15, 0.4); transform: scale(1.1); }
 
-.item-header-row {
-    display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start;
-    gap: 8px; margin-bottom: 8px; padding-right: 40px;
-}
+.item-header-row { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 8px; margin-bottom: 8px; padding-right: 40px; }
 .term { font-size: 17px; font-weight: bold; color: var(--text-main); width: 100%; line-height: 1.4; }
 .reading { font-size: 11px; color: var(--text-sub); margin-left: 6px; font-weight: normal;}
 .category-badge {
@@ -244,6 +194,7 @@ body {
 /* モーダル */
 .modal-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    /* すりガラス弱め */
     background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(1px);
     display: flex; justify-content: center; align-items: center; z-index: 1000;
     opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -267,22 +218,19 @@ body {
     border-radius: 50%; font-size: 20px; color: #ccc; cursor: pointer;
     display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 10;
 }
-.modal-fav-btn.active {
-    color: #f1c40f; background: #fff9c4; box-shadow: 0 2px 5px rgba(241, 196, 15, 0.3); transform: scale(1.1);
-}
+.modal-fav-btn.active { color: #f1c40f; background: #fff9c4; box-shadow: 0 2px 5px rgba(241, 196, 15, 0.3); transform: scale(1.1); }
 .modal-fav-btn:active { transform: scale(0.95); }
 .modal-header { margin-bottom: 16px; padding-right: 30px; }
 #modal-term { margin: 0 0 8px 0; font-size: 24px; color: var(--text-main); }
 .modal-body { font-size: 15px; color: #555; line-height: 1.7; max-height: 60vh; overflow-y: auto; }
 
-/* ▼▼▼ 追加: お問い合わせフォームのスタイル ▼▼▼ */
+/* お問い合わせフォーム */
 .contact-desc { font-size: 14px; color: #555; margin-bottom: 20px; text-align: center; }
 .contact-form { display: flex; flex-direction: column; gap: 16px; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
 .form-group label { font-size: 13px; font-weight: bold; color: var(--text-main); }
 .form-group select, .form-group textarea {
-    padding: 10px; border: 1px solid #ddd; border-radius: 8px;
-    font-size: 14px; background: #f9f9f9; outline: none;
+    padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #f9f9f9; outline: none;
 }
 .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: #fff; }
 .submit-btn {
