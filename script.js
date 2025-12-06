@@ -12,6 +12,11 @@ const resultInput = document.getElementById('result-input');
 const listContainer = document.getElementById('result-list');
 const noResultMsg = document.getElementById('no-result');
 const resultCountSpan = document.getElementById('result-count');
+const modalOverlay = document.getElementById('modal-overlay');
+const modalCloseBtn = document.getElementById('modal-close-btn');
+const modalTerm = document.getElementById('modal-term');
+const modalBadges = document.getElementById('modal-badges');
+const modalDescription = document.getElementById('modal-description');
 
 // --- データ管理 ---
 let termsData = [];
@@ -116,6 +121,14 @@ function setupEventListeners() {
         resetSearchBtn.addEventListener('click', () => {
             selectedTags.clear();
             goToResults("");
+        });
+    }
+
+    if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+    if(modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            // 背景（オーバーレイ）をクリックした時だけ閉じる
+            if (e.target === modalOverlay) closeModal();
         });
     }
 }
@@ -229,8 +242,7 @@ function renderList() {
                 <div class="description">${highlight(item.description, currentQuery)}</div>
             `;
             
-            const tagsInfo = item.tags ? item.tags.join(', ') : '';
-            li.onclick = () => alert(`${item.term}\n[${tagsInfo}]\n\n${item.description}`);
+            li.onclick = () => openModal(item);
             
             listContainer.appendChild(li);
         });
@@ -238,27 +250,46 @@ function renderList() {
 }
 
 // --- ヘルパー: チップの見た目更新 ---
+
+// モーダルを開く
+function openModal(item) {
+    // データを流し込む
+    modalTerm.textContent = item.term;
+    // 読み仮名もつける場合はこちら: modalTerm.innerHTML = `${item.term} <span style="font-size:0.6em; color:#777;">(${item.reading})</span>`;
+    modalDescription.innerHTML = item.description.replace(/\n/g, '<br>'); // 改行対応
+    modalBadges.innerHTML = createBadgesHtml(item.tags);
+
+    // 表示クラスを付与（アニメーション開始）
+    modalOverlay.classList.add('active');
+}
+
+// モーダルを閉じる
+function closeModal() {
+    modalOverlay.classList.remove('active');
+}
+
+// バッジHTML生成
+function createBadgesHtml(tags) {
+    if (tags && Array.isArray(tags)) {
+        return tags.map(tag => `<span class="category-badge" data-tag="${tag}">${tag}</span>`).join('');
+    }
+    return '';
+}
+
 function updateCategoryChips() {
     const allChips = document.querySelectorAll('.chip');
     allChips.forEach(chip => {
         const tag = chip.dataset.cat;
-        
-        // 「すべて」チップの扱い
+        const isHome = chip.closest('#view-home'); 
         if (tag === 'all') {
-            // 何も選択されていない時だけ active
-            if (selectedTags.size === 0) {
-                chip.classList.add('active');
-            } else {
-                chip.classList.remove('active');
+            if (isHome) chip.classList.remove('active');
+            else {
+                if (selectedTags.size === 0) chip.classList.add('active');
+                else chip.classList.remove('active');
             }
-        } 
-        // その他のチップ
-        else {
-            if (selectedTags.has(tag)) {
-                chip.classList.add('active');
-            } else {
-                chip.classList.remove('active');
-            }
+        } else {
+            if (selectedTags.has(tag)) chip.classList.add('active');
+            else chip.classList.remove('active');
         }
     });
 }

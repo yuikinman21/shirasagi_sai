@@ -13,7 +13,7 @@
     <div class="home-content">
         <div class="logo-area">
             <div class="logo-icon">🦢</div>
-            <h1 class="app-title">白鷺祭<br><span class="subtitle">用語・マニュアル検索</span></h1>
+            <h1 class="app-title">白鷺祭<br><span class="subtitle">サギ用語検索</span></h1>
         </div>
 
         <div class="home-search-wrapper">
@@ -31,7 +31,7 @@
                 </div> -->
 
                 <div class="categories-scroll">
-                    <div class="chip active" data-cat="all">すべて</div>
+                    <!-- <div class="chip active" data-cat="all">すべて</div> -->
                     
                     <div class="chip" data-cat="四役">四役</div>
                     <div class="chip" data-cat="企画部">企画部</div>
@@ -97,6 +97,24 @@
         </div>
     </div>
 </div>
+
+<div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal-card">
+        <button id="modal-close-btn" class="modal-close-btn">×</button>
+        <div class="modal-header">
+            <h2 id="modal-term">用語名</h2>
+            <div id="modal-badges" class="badges-wrapper">
+                </div>
+        </div>
+        <div class="modal-body">
+            <p id="modal-description">ここに詳細説明が入ります。</p>
+        </div>
+    </div>
+</div>
+
+<script src="script.js" defer></script>
+</body>
+</html>
 
 </body>
 </html>
