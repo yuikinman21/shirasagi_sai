@@ -166,7 +166,7 @@ const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-gri
                 // 正規表現で \n を \r\n に置換
                 const body = encodeURIComponent(bodyText.replace(/\n/g, "\r\n"));
                 
-                window.location.href = `mailto:info@shirasagisai.com?subject=${subject}&body=${body}`;
+                window.location.href = `mailto:sw23263n@st.omu.ac.jp?subject=${subject}&body=${body}`;
             });
         }
 }
