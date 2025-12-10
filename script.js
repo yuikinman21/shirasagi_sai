@@ -225,9 +225,10 @@ function renderList() {
         const term = item.term || '';
         const reading = item.reading || '';
         const keywords = item.keywords || '';
+        const description = item.description || '';
         let isKeyInTag = (item.tags || []).some(t => t.toLowerCase().includes(q));
         
-        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywords.includes(q) || isKeyInTag;
+        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywords.includes(q) || description.includes(q) || isKeyInTag;
         return isTagMatch && isTextMatch;
     });
 
