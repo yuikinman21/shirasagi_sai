@@ -40,6 +40,24 @@ let favoriteIds = [];
 // --- 1. 初期化 ---
 async function init() {
     try {
+        // 先に data.js が公開した Promise を待つ（あれば）
+        if (window.sheetPromise && typeof window.sheetPromise.then === 'function') {
+            try {
+                // await が長時間ブロックしないよう必要ならタイムアウト実装も可能
+                await window.sheetPromise;
+            } catch (e) {
+                console.warn('sheetPromise rejected:', e);
+            }
+        }
+
+        // sheetPromise の結果で termsData が埋まっていればそれを使う
+        if (window.termsData && Array.isArray(window.termsData) && window.termsData.length > 0) {
+            termsData = window.termsData;
+            renderHomeFavorites();
+            return;
+        }
+
+        // フォールバック: ローカルの data.json を使用
         const response = await fetch('data.json?' + new Date().getTime());
         if (!response.ok) throw new Error('Network response was not ok');
         termsData = await response.json();
@@ -222,12 +240,22 @@ function renderList() {
         }
 
         const q = currentQuery.toLowerCase().trim();
-        const term = item.term || '';
-        const reading = item.reading || '';
-        const keywords = item.keywords || '';
-        let isKeyInTag = (item.tags || []).some(t => t.toLowerCase().includes(q));
-        
-        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywords.includes(q) || isKeyInTag;
+
+        // 小文字化して比較（ケースインセンシティブ）
+        const term = (item.term || '').toLowerCase();
+        const reading = (item.reading || '').toLowerCase();
+
+        // keywords は配列になっている想定。文字列の場合も許容する。
+        let keywordsJoined = '';
+        if (Array.isArray(item.keywords)) {
+            keywordsJoined = item.keywords.join(' ').toLowerCase();
+        } else {
+            keywordsJoined = String(item.keywords || '').toLowerCase();
+        }
+
+        let isKeyInTag = (item.tags || []).some(t => String(t).toLowerCase().includes(q));
+
+        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywordsJoined.includes(q) || isKeyInTag;
         return isTagMatch && isTextMatch;
     });
 
