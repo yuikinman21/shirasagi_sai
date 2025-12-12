@@ -43,8 +43,11 @@ async function init() {
         // 先に data.js が公開した Promise を待つ（あれば）
         if (window.sheetPromise && typeof window.sheetPromise.then === 'function') {
             try {
-                // await が長時間ブロックしないよう必要ならタイムアウト実装も可能
-                await window.sheetPromise;
+               // タイムアウト（例: 10秒）付きで sheetPromise を待つ
+                await Promise.race([
+                    window.sheetPromise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('sheetPromise timeout')), 10000))
+                ]);
             } catch (e) {
                 console.warn('sheetPromise rejected:', e);
             }
