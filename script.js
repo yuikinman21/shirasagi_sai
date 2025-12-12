@@ -255,10 +255,12 @@ function renderList() {
         } else {
             keywordsJoined = String(item.keywords || '').toLowerCase();
         }
+        // description を検索対象に含める
+        const description = (item.description || '').toLowerCase();
 
         let isKeyInTag = (item.tags || []).some(t => String(t).toLowerCase().includes(q));
 
-        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywordsJoined.includes(q) || isKeyInTag;
+        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywordsJoined.includes(q) || description.includes(q) || isKeyInTag;
         return isTagMatch && isTextMatch;
     });
 
