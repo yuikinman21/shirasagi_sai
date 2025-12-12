@@ -26,7 +26,7 @@ async function loadSheetAsTerms() {
         if (missingHeaders.length > 0) {
             throw new Error('CSV is missing required header(s): ' + missingHeaders.join(', '));
         }
-        
+
         const rows = parsed.data || [];
 
         const mapped = rows.map((row, idx) => {
@@ -49,7 +49,7 @@ async function loadSheetAsTerms() {
                 id: row.id ? parseInt(row.id, 10) : (idx + 1),
                 term: (row.term || '').trim(),
                 reading: (row.reading || '').trim(),
-                keywords: keywordsArray, // 🚨 ここを配列に修正
+                keywords: keywordsArray, // キーワード列をカンマ区切りで配列化したもの
                 tags: Array.from(new Set(tags)),
                 description: (row.description || '').trim(),
                 image: (row.image || '').trim()
