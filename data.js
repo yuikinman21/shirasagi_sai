@@ -59,9 +59,13 @@ async function loadSheetAsTerms() {
         // 最低限の重複 id 対策: 重複があれば連番に差し替える
         const seen = new Set();
         mapped.forEach((it, i) => {
-            // idが不正または既に存在する場合に連番を割り当てる
+           // idが不正または既に存在する場合に未使用の連番を割り当てる
             if (!it.id || seen.has(it.id)) {
-                it.id = i + 1;
+                let candidate = 1;
+                while (seen.has(candidate)) {
+                    candidate++;
+                }
+                it.id = candidate;
             }
             seen.add(it.id);
         });
