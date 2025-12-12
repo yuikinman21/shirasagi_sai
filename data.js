@@ -76,7 +76,10 @@ async function loadSheetAsTerms() {
     } catch (err) {
         console.error('Failed to load sheet CSV:', err);
         // エラー時は window.termsData を空配列にしておく
-        window.termsData = window.termsData || [];
+        if (window.termsData && Array.isArray(window.termsData) && window.termsData.length > 0) {
+            console.warn('window.termsData contained old data, but is being reset to an empty array due to load failure.');
+        }
+        window.termsData = [];
         return window.termsData;
     }
 }
