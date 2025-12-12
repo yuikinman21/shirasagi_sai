@@ -18,6 +18,15 @@ async function loadSheetAsTerms() {
 
         // PapaParse を使用してヘッダ付きで安全にパース
         const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+
+        // --- 必要ヘッダを検証する ---
+        const requiredHeaders = ['term'];
+        const foundHeaders = parsed.meta && parsed.meta.fields ? parsed.meta.fields : [];
+        const missingHeaders = requiredHeaders.filter(h => !foundHeaders.includes(h));
+        if (missingHeaders.length > 0) {
+            throw new Error('CSV is missing required header(s): ' + missingHeaders.join(', '));
+        }
+        
         const rows = parsed.data || [];
 
         const mapped = rows.map((row, idx) => {
