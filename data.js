@@ -8,7 +8,8 @@
 */
 
 // 公開したスプレッドシートの CSV 出力 URL にしてください（例: pub?output=csv）
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQMhpWQl0NnB0SV2CXmAL_aAHYohFhqlm5LnoVnpOMBJPLeHcLRhWY5fzHUSuM4jYXK6euB6X2LNUmz/pub?gid=232235237&single=true&output=csv";
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRAuYT97GP4G_GTiNJJtHl4loaNajahPjAH-MNVn48pfRME9sz7EyQ4yVmZaqli17NA_BOJgXDnBjEI/pub?output=csv";
+// const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQMhpWQl0NnB0SV2CXmAL_aAHYohFhqlm5LnoVnpOMBJPLeHcLRhWY5fzHUSuM4jYXK6euB6X2LNUmz/pub?gid=232235237&single=true&output=csv";
 
 async function loadSheetAsTerms() {
     try {
