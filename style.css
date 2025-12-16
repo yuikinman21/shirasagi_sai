@@ -147,6 +147,64 @@ body {
     width: 100%;
 }
 
+/* ソート関連コントロールの調整: タグやカードと雰囲気を合わせる */
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sort-select {
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    background: var(--white);
+    color: var(--text-main);
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    appearance: none;
+}
+.sort-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 6px 18px rgba(0,86,179,0.08);
+}
+
+/* ドロップダウンであることが視認できるよう、右端に逆三角アイコンを表示 */
+.sort-select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0 L5 6 L10 0 Z' fill='%23666' /></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 10px 6px;
+    padding-right: 36px; /* アイコン分の余白を確保 */
+}
+
+/* 再読み込みボタンをカード／チップの雰囲気に合わせる */
+.reload-btn {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #eee;
+    background: var(--white);
+    color: var(--text-main);
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    transition: transform 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.reload-btn:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+.reload-btn:active { transform: translateY(0); opacity: 0.95; }
+
+/* 小さい画面でレイアウトが窮屈なら折り返す */
+@media (max-width: 520px) {
+    .filter-controls { flex-direction: column; align-items: stretch; gap: 8px; }
+    .sort-controls { justify-content: space-between; }
+}
+
 .filter-toggle-btn {
     display: flex; justify-content: center; align-items: center; gap: 6px;
     padding: 6px; background: none; border: none;

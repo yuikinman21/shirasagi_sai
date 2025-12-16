@@ -16,6 +16,8 @@ const noResultMsg = document.getElementById('no-result');
 const resultCountSpan = document.getElementById('result-count');
 const homeFavoritesList = document.getElementById('home-favorites-list');
 const multiSelectToggle = document.getElementById('multi-select-toggle');
+const sortMethodSelect = document.getElementById('sort-method-select');
+const sortOrderSelect = document.getElementById('sort-order-select');
 
 // モーダル関連
 const modalOverlay = document.getElementById('modal-overlay');
@@ -69,6 +71,45 @@ async function init() {
         console.error(e);
         if(listContainer) listContainer.innerHTML = '<li style="color:red;padding:20px">データ読込エラー</li>';
     }
+    // 自動ポーリング開始（30秒ごと）。既にある場合はクリア
+    try {
+        if (window._sheetPollInterval) clearInterval(window._sheetPollInterval);
+
+        const getMaxTimestamp = (arr) => {
+            if (!Array.isArray(arr) || arr.length === 0) return -Infinity;
+            const keys = ['updated', 'updated_at', 'updatedAt', 'modified', 'modified_at', 'date', 'timestamp'];
+            let max = -Infinity;
+            for (const it of arr) {
+                for (const k of keys) {
+                    if (it && it[k]) {
+                        const t = Date.parse(it[k]);
+                        if (!isNaN(t) && t > max) max = t;
+                        break; // found a timestamp-like key for this item
+                    }
+                }
+            }
+            return max;
+        };
+
+        window._sheetPollInterval = setInterval(async () => {
+            try {
+                if (window.reloadSheet) {
+                    const prevMax = getMaxTimestamp(termsData || []);
+                    await window.reloadSheet(true);
+                    const newMax = getMaxTimestamp(window.termsData || []);
+                    if (newMax > prevMax) {
+                        termsData = window.termsData;
+                        renderHomeFavorites();
+                        if (viewResults.classList.contains('active')) renderList();
+                    }
+                }
+            } catch (err) {
+                console.warn('poll reload failed:', err);
+            }
+        }, 30000);
+    } catch (e) {
+        console.warn('could not start poll:', e);
+    }
 }
 
 // --- 2. イベント設定 ---
@@ -87,6 +128,50 @@ function setupEventListeners() {
     const homeSearchBtn = document.getElementById('home-search-btn');
     if(homeSearchBtn) homeSearchBtn.addEventListener('click', () => {
         if(homeInput.value.trim()) goToResults(homeInput.value);
+    });
+
+    // ソート選択の変化でリストを再描画
+    if (sortMethodSelect) sortMethodSelect.addEventListener('change', () => renderList());
+    if (sortOrderSelect) sortOrderSelect.addEventListener('change', () => renderList());
+    const reloadBtn = document.getElementById('reload-sheet-btn');
+    // ソート方式に応じて右側のラベルを切り替える
+    function updateSortOrderLabels() {
+        if (!sortMethodSelect || !sortOrderSelect) return;
+        const method = sortMethodSelect.value;
+        // クリアして再設定（デフォルト値をリセットする）
+        sortOrderSelect.options.length = 0;
+        if (method === 'updated') {
+            // 更新順: デフォルトは「新しい順（降順）」
+            sortOrderSelect.add(new Option('新しい順', 'desc'));
+            sortOrderSelect.add(new Option('古い順', 'asc'));
+            sortOrderSelect.value = 'desc';
+        } else {
+            // タグ順・名前順: デフォルトは「昇順」
+            sortOrderSelect.add(new Option('昇順', 'asc'));
+            sortOrderSelect.add(new Option('降順', 'desc'));
+            sortOrderSelect.value = 'asc';
+        }
+    }
+    if (sortMethodSelect) sortMethodSelect.addEventListener('change', () => { updateSortOrderLabels(); renderList(); });
+    // 初期ラベル更新
+    updateSortOrderLabels();
+    if (reloadBtn) reloadBtn.addEventListener('click', async () => {
+        reloadBtn.disabled = true;
+        reloadBtn.textContent = '再読み込み中…';
+        try {
+            if (window.reloadSheet) await window.reloadSheet(true);
+            // 更新されたデータをローカルに取り込んで再描画
+            if (window.termsData && Array.isArray(window.termsData)) {
+                termsData = window.termsData;
+                renderHomeFavorites();
+                if (viewResults.classList.contains('active')) renderList();
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            reloadBtn.disabled = false;
+            reloadBtn.textContent = '再読み込み';
+        }
     });
 
     const showAllListBtn = document.getElementById('show-all-link');
@@ -272,10 +357,25 @@ function renderList() {
         return isTagMatch && isTextMatch;
     });
 
-    if(resultCountSpan) resultCountSpan.textContent = filtered.length;
-    noResultMsg.style.display = filtered.length === 0 ? 'block' : 'none';
+    // --- ソート適用 ---
+    let sorted = filtered.slice();
+    const method = sortMethodSelect ? sortMethodSelect.value : 'tag';
+    const order = sortOrderSelect ? sortOrderSelect.value : 'desc';
+    if (window.sortItems) {
+        if (method === 'tag') {
+            const tagContainerEl = document.getElementById('tag-container');
+            const chips = tagContainerEl ? Array.from(tagContainerEl.querySelectorAll('.chip')) : [];
+            const tagOrderArray = chips.map(c => c.dataset.cat).filter(t => t && t !== 'all' && t !== 'favorites');
+            sorted = window.sortItems(sorted, { method: 'tag', order, tagOrderArray });
+        } else {
+            sorted = window.sortItems(sorted, { method, order });
+        }
+    }
 
-    filtered.forEach((item, i) => {
+    if(resultCountSpan) resultCountSpan.textContent = sorted.length;
+    noResultMsg.style.display = sorted.length === 0 ? 'block' : 'none';
+
+    sorted.forEach((item, i) => {
         const isFav = favoriteIds.includes(item.id);
         const badgesHtml = (item.tags || []).map(tag => 
             `<span class="category-badge" data-tag="${tag}" onclick="searchByTag(event, '${tag}')">${tag}</span>`

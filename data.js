@@ -3,16 +3,17 @@
   アプリで使う形にマッピングして `window.termsData` に入れるローダー
 
   期待する CSV ヘッダ: id, term, reading, keyword, tags_1, tags_2, tags_3, tags_4, description, image
-  - `keyword` 列はセル内にカンマを含む可能性があるため、PapaParse を使用して安全にパースします。
-  - 各 tags_* 列をまとめて `tags` 配列を作ります。
+  - `keyword` 列はセル内にカンマを含む可能性があるため、PapaParse を使用して安全にパースする。
+  - 各 tags_* 列をまとめて `tags` 配列を作成。
 */
 
-// 公開したスプレッドシートの CSV 出力 URL にしてください（例: pub?output=csv）
+// 公開したスプレッドシートの CSV 出力 URL （例: pub?output=csv）
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQMhpWQl0NnB0SV2CXmAL_aAHYohFhqlm5LnoVnpOMBJPLeHcLRhWY5fzHUSuM4jYXK6euB6X2LNUmz/pub?gid=232235237&single=true&output=csv";
 
-async function loadSheetAsTerms() {
+async function loadSheetAsTerms(noCache = true) {
     try {
-        const res = await fetch(CSV_URL);
+        const url = noCache ? CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now() : CSV_URL;
+        const res = await fetch(url, { cache: 'no-store' });
         if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
         const csvText = await res.text();
 
@@ -28,6 +29,10 @@ async function loadSheetAsTerms() {
         }
 
         const rows = parsed.data || [];
+
+        // K列（11列目）に相当するヘッダ名があれば取得して更新日時に使う
+        const headerFields = parsed.meta && parsed.meta.fields ? parsed.meta.fields : [];
+        const updatedFieldKey = headerFields.length >= 11 ? headerFields[10] : null; // 0-based index
 
         const mapped = rows.map((row, idx) => {
             // --- 1. tags_* 列を統合して tags 配列を作成 ---
@@ -52,7 +57,9 @@ async function loadSheetAsTerms() {
                 keywords: keywordsArray, // キーワード列をカンマ区切りで配列化したもの
                 tags: Array.from(new Set(tags)),
                 description: (row.description || '').trim(),
-                image: (row.image || '').trim()
+                image: (row.image || '').trim(),
+                // K列があれば updated プロパティとして保持する（Apps Script でタイムスタンプを書き込む想定）
+                updated: updatedFieldKey ? (row[updatedFieldKey] || '').trim() : ''
             };
         }).filter(item => item.term); // 用語が必須
 
@@ -87,3 +94,23 @@ async function loadSheetAsTerms() {
 // 自動でロード（defer 属性で読み込まれることを想定）
 // Promise を外部に公開して init() が待てるようにする
 window.sheetPromise = loadSheetAsTerms();
+
+// 手動再読み込みを行うための公開関数
+window.reloadSheet = async function(noCache = true) {
+    try {
+        // 新しい Promise を発行して外部からも待てるようにする
+        window.sheetPromise = loadSheetAsTerms(noCache);
+        await window.sheetPromise;
+
+        // 呼び出し元が UI を再描画できるように termsData はすでに更新されている
+        if (window.termsData && Array.isArray(window.termsData)) {
+            // 旧 API と互換性を保つためグローバル変数を上書き
+            // 呼び出し側で renderList / renderHomeFavorites を呼ぶ
+            console.log('sheet reloaded, items:', window.termsData.length);
+        }
+        return window.termsData;
+    } catch (e) {
+        console.error('reloadSheet failed:', e);
+        return window.termsData || [];
+    }
+};

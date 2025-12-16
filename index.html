@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
     <script src="data.js" defer></script>
+    <script src="sort.js" defer></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -87,6 +88,20 @@
                 <span class="label-text">複数選択</span>
             </label>
             
+            <label class="sort-controls">
+                <span class="label-text">ソート:</span>
+                <select id="sort-method-select" class="sort-select">
+                    <option value="tag">タグ順</option>
+                    <option value="updated">更新順</option>
+                    <option value="reading">名前（読み）</option>
+                </select>
+                <select id="sort-order-select" class="sort-select">
+                    <option value="asc">昇順</option>
+                    <option value="desc">降順</option>
+                </select>
+            </label>
+                <button id="reload-sheet-btn" class="reload-btn">再読み込み</button>
+
             <button id="filter-expand-btn" class="filter-toggle-btn">
                 <span class="btn-text">タグをすべて見る</span>
                 <span class="btn-icon">▼</span>
