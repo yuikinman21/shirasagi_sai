@@ -68,6 +68,14 @@ function setupEventListeners() {
         if(homeInput.value.trim()) goToResults(homeInput.value);
     });
 
+    const showAllListBtn = document.getElementById('show-all-list-btn');
+    if(showAllListBtn) {
+        showAllListBtn.addEventListener('click', () => {
+            selectedTags.clear();
+            goToResults(""); // クエリ空で検索結果画面へ
+        });
+    }
+
     // タグエリアの開閉ボタン
     const expandBtn = document.getElementById('filter-expand-btn');
     const tagContainer = document.getElementById('tag-container');

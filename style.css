@@ -62,6 +62,45 @@ body {
 .text-link-btn { background: none; border: none; color: var(--text-sub); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 10px; }
 .text-link-btn:hover { color: var(--primary); }
 
+.home-action-area {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 24px; /* カテゴリとの間隔 */
+}
+
+/* 全用語を見るボタン */
+.action-btn-wide {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--white);
+    color: var(--primary);
+    border: 2px solid var(--primary-bg);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+
+.action-btn-wide:hover {
+    background-color: var(--primary-bg);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.15);
+}
+
+.action-btn-wide:active {
+    transform: scale(0.98);
+}
+
+.action-btn-wide .icon {
+    font-size: 18px;
+}
+
 
 /* --- 2. 検索結果画面スタイル --- */
 .result-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 110; border-bottom: 1px solid #eee; }
