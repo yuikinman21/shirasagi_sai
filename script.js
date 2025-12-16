@@ -89,7 +89,7 @@ function setupEventListeners() {
         if(homeInput.value.trim()) goToResults(homeInput.value);
     });
 
-    const showAllListBtn = document.getElementById('show-all-list-btn');
+    const showAllListBtn = document.getElementById('show-all-link');
     if(showAllListBtn) {
         showAllListBtn.addEventListener('click', () => {
             selectedTags.clear();

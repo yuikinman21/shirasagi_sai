@@ -51,7 +51,7 @@ body {
 .no-fav-msg { font-size: 13px; color: #aaa; text-align: center; padding: 10px; }
 
 .home-categories { width: 100%; max-width: 400px; }
-.cat-label { font-size: 13px; color: var(--text-sub); margin-bottom: 10px; text-align: center; }
+.cat-label { font-size: 14px; font-weight: bold; color: var(--text-sub); margin-bottom: 10px; text-align: center; }
 .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .cat-card { padding: 12px; background: var(--white); border: 1px solid #eee; border-radius: 12px; font-size: 14px; color: var(--text-main); cursor: pointer; transition: 0.2s; font-family: inherit; text-align: center; }
 .cat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--primary); }
@@ -68,38 +68,47 @@ body {
     margin-bottom: 24px; /* カテゴリとの間隔 */
 }
 
-/* 全用語を見るボタン */
-.action-btn-wide {
-    width: 100%;
-    padding: 14px;
-    background-color: var(--white);
-    color: var(--primary);
-    border: 2px solid var(--primary-bg);
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
+
+/* カテゴリセクションのヘッダー */
+.cat-header {
     display: flex;
-    justify-content: center;
+    justify-content: space-between; /* 両端揃え */
     align-items: center;
-    gap: 8px;
-    transition: 0.2s;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 0 4px; /* 端に寄りすぎないように少し余白 */
+    box-sizing: border-box;
 }
 
-.action-btn-wide:hover {
-    background-color: var(--primary-bg);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.15);
+/* ラベルテキスト */
+.cat-label-text {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: bold;
 }
 
-.action-btn-wide:active {
-    transform: scale(0.98);
+/* 「すべて見る」ボタン */
+.view-all-btn {
+    background: none;
+    border: none;
+    color: var(--primary); /* テーマカラーを使用 */
+    font-size: 13px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 16px;
+    transition: background-color 0.2s;
+    font-weight: bold;
+    margin-top: 20px;
 }
 
-.action-btn-wide .icon {
-    font-size: 18px;
+.view-all-btn:hover {
+    background-color: var(--primary-bg); /* ホバー時に薄い背景色 */
 }
+
+.view-all-btn:active {
+    opacity: 0.7;
+}
+
 
 
 /* --- 2. 検索結果画面スタイル --- */
