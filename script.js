@@ -316,6 +316,7 @@ function goToHome() {
     renderHomeFavorites();
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewHome.classList.remove('hidden'); viewHome.classList.add('active');
+    window.scrollTo(0, 0);
 }
 
 // --- 4. 描画ロジック ---
