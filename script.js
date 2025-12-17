@@ -71,45 +71,6 @@ async function init() {
         console.error(e);
         if(listContainer) listContainer.innerHTML = '<li style="color:red;padding:20px">データ読込エラー</li>';
     }
-    // 自動ポーリング開始（30秒ごと）。既にある場合はクリア
-    try {
-        if (window._sheetPollInterval) clearInterval(window._sheetPollInterval);
-
-        const getMaxTimestamp = (arr) => {
-            if (!Array.isArray(arr) || arr.length === 0) return -Infinity;
-            const keys = ['updated', 'updated_at', 'updatedAt', 'modified', 'modified_at', 'date', 'timestamp'];
-            let max = -Infinity;
-            for (const it of arr) {
-                for (const k of keys) {
-                    if (it && it[k]) {
-                        const t = Date.parse(it[k]);
-                        if (!isNaN(t) && t > max) max = t;
-                        break; // found a timestamp-like key for this item
-                    }
-                }
-            }
-            return max;
-        };
-
-        window._sheetPollInterval = setInterval(async () => {
-            try {
-                if (window.reloadSheet) {
-                    const prevMax = getMaxTimestamp(termsData || []);
-                    await window.reloadSheet(true);
-                    const newMax = getMaxTimestamp(window.termsData || []);
-                    if (newMax > prevMax) {
-                        termsData = window.termsData;
-                        renderHomeFavorites();
-                        if (viewResults.classList.contains('active')) renderList();
-                    }
-                }
-            } catch (err) {
-                console.warn('poll reload failed:', err);
-            }
-        }, 30000);
-    } catch (e) {
-        console.warn('could not start poll:', e);
-    }
 }
 
 // --- 2. イベント設定 ---
@@ -133,7 +94,6 @@ function setupEventListeners() {
     // ソート選択の変化でリストを再描画
     if (sortMethodSelect) sortMethodSelect.addEventListener('change', () => renderList());
     if (sortOrderSelect) sortOrderSelect.addEventListener('change', () => renderList());
-    const reloadBtn = document.getElementById('reload-sheet-btn');
     // ソート方式に応じて右側のラベルを切り替える
     function updateSortOrderLabels() {
         if (!sortMethodSelect || !sortOrderSelect) return;
@@ -155,24 +115,6 @@ function setupEventListeners() {
     if (sortMethodSelect) sortMethodSelect.addEventListener('change', () => { updateSortOrderLabels(); renderList(); });
     // 初期ラベル更新
     updateSortOrderLabels();
-    if (reloadBtn) reloadBtn.addEventListener('click', async () => {
-        reloadBtn.disabled = true;
-        reloadBtn.textContent = '再読み込み中…';
-        try {
-            if (window.reloadSheet) await window.reloadSheet(true);
-            // 更新されたデータをローカルに取り込んで再描画
-            if (window.termsData && Array.isArray(window.termsData)) {
-                termsData = window.termsData;
-                renderHomeFavorites();
-                if (viewResults.classList.contains('active')) renderList();
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            reloadBtn.disabled = false;
-            reloadBtn.textContent = '再読み込み';
-        }
-    });
 
     const showAllListBtn = document.getElementById('show-all-link');
     if(showAllListBtn) {
@@ -184,18 +126,28 @@ function setupEventListeners() {
 
     // タグエリアの開閉ボタン
     const expandBtn = document.getElementById('filter-expand-btn');
+    const closeBtn = document.getElementById('filter-close-btn');
     const tagContainer = document.getElementById('tag-container');
+    const filterBar = document.querySelector('.filter-bar');
+    
+    const toggleExpanded = () => {
+        tagContainer.classList.toggle('expanded');
+        if(filterBar) filterBar.classList.toggle('expanded');
+        
+        // ボタンのテキストを切り替え
+        const textSpan = expandBtn.querySelector('.btn-text');
+        if(tagContainer.classList.contains('expanded')) {
+            textSpan.textContent = '閉じる';
+        } else {
+            textSpan.textContent = 'タグをすべて見る';
+        }
+    };
+    
     if(expandBtn && tagContainer) {
-        expandBtn.addEventListener('click', () => {
-            tagContainer.classList.toggle('expanded');
-            
-            const textSpan = expandBtn.querySelector('.btn-text');
-            if(tagContainer.classList.contains('expanded')) {
-                textSpan.textContent = '閉じる';
-            } else {
-                textSpan.textContent = 'タグをすべて見る';
-            }
-        });
+        expandBtn.addEventListener('click', toggleExpanded);
+    }
+    if(closeBtn && tagContainer) {
+        closeBtn.addEventListener('click', toggleExpanded);
     }
     // リサイズ時にもあふれチェック
     window.addEventListener('resize', checkTagOverflow);
