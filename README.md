@@ -5,7 +5,7 @@
 大阪公立大学 学園祭「白鷺祭（しらさぎさい）」実行委員会向けの、用語検索・共有Webアプリケーションです。
 従来PDF形式で配布されていた用語集をWebアプリ化し、スマホからの検索性向上と知識の属人化解消を目指して開発されました。
 
-🔗 **Sample**: [https://shirasagi-sai-git-sumple-yuikis-projects.vercel.app/](https://shirasagi-sai-git-sumple-yuikis-projects.vercel.app/)
+🔗 **Sample**: [https://shirasagi-sai-git-sample-yuikis-projects.vercel.app/](https://shirasagi-sai-git-sample-yuikis-projects.vercel.app/)
 
 ## ✨ 機能 (Features)
 
