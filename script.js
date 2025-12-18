@@ -141,6 +141,9 @@ function setupEventListeners() {
         } else {
             textSpan.textContent = 'タグをすべて見る';
         }
+
+        // 展開状態を変えたらオーバーフロー判定を更新
+        checkTagOverflow();
     };
     
     if(expandBtn && tagContainer) {
@@ -358,21 +361,35 @@ function renderList() {
 function checkTagOverflow() {
     const tagContainer = document.getElementById('tag-container');
     const expandBtn = document.getElementById('filter-expand-btn');
-    if (!tagContainer || !expandBtn) return;
+    const filterBar = document.querySelector('.filter-bar');
+    if (!tagContainer || !expandBtn || !filterBar) return;
+
+    // PC では常に展開表示なのでスマホのみ判定
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop) {
+        filterBar.classList.remove('collapsed-overflow');
+        return;
+    }
     
-    // 一度閉じた状態で判定する
+    // 計測時はいったん閉じる
     const wasExpanded = tagContainer.classList.contains('expanded');
     tagContainer.classList.remove('expanded');
     
-    // 1px余裕を見る
+    // 1px 余裕を持ってオーバーフロー判定
     const hasOverflow = tagContainer.scrollWidth > tagContainer.clientWidth + 1;
+
+    // オーバーフローしていて未展開なら、トグルを固定表示させるフラグを付与
+    const shouldPinToggle = hasOverflow && !wasExpanded;
+    filterBar.classList.toggle('collapsed-overflow', shouldPinToggle);
     
     if (hasOverflow) {
         expandBtn.style.display = 'flex';
-        if (wasExpanded) tagContainer.classList.add('expanded');
     } else {
         expandBtn.style.display = 'none';
     }
+
+    // 元の展開状態を復元
+    if (wasExpanded) tagContainer.classList.add('expanded');
 }
 
 window.searchByTag = function(e, tag) {
