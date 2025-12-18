@@ -1,8 +1,80 @@
-# Shirasagi_sai
-白鷺祭の用語集システム開発
+# 🦢 白鷺祭用語集 (Shirasagi Festival Glossary)
 
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-🚀_Deploy-2ea44f?style=for-the-badge&logo=github)](https://yuikinman21.github.io/shirasagi_sai/)
+**「PDFの用語集を、もっと使いやすく。」**
 
-[![pages-build-deployment](https://github.com/yuikinman21/shirasagi_sai/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/yuikinman21/shirasagi_sai/actions/workflows/pages/pages-build-deployment)
+大阪公立大学 学園祭「白鷺祭（しらさぎさい）」実行委員会向けの、用語検索・共有Webアプリケーションです。
+従来PDF形式で配布されていた用語集をWebアプリ化し、スマホからの検索性向上と知識の属人化解消を目指して開発されました。
 
-目的：PDF形式で作成した用語集に対して、委員全員が使いやすいようにGUIを工夫したアプリケーションの作成。
+🔗 **Sample**: [https://shirasagi-sai-git-sumple-yuikis-projects.vercel.app/](https://shirasagi-sai-git-sumple-yuikis-projects.vercel.app/)
+
+## ✨ 機能 (Features)
+
+* **🔍 リアルタイム検索**: 用語名、読み仮名、関連キーワードからインクリメンタルサーチが可能。
+* **🏷️ カテゴリ・タグ絞り込み**: 「情報部」「企画部」「機材」などのタグでフィルタリング。複数タグの掛け合わせ検索も対応。
+* **⭐ お気に入り機能**: よく使う用語をローカルストレージに保存し、トップページから即座にアクセス。
+* **📊 スプレッドシート連携**: データの追加・編集はGoogleスプレッドシートで管理し、非エンジニアでも更新可能な運用フローを構築。
+* **📱 モバイルファーストUI**: 実行委員が活動中にスマホで片手で操作しやすいUIデザイン。
+* **📧 フィードバック**: アプリ内フォームから、用語の追加依頼やバグ報告をメールで送信可能。
+
+## 🛠 技術スタック (Tech Stack)
+
+フレームワークに依存せず、軽量かつ高速に動作する **Vanilla JS** 構成を採用しています。
+
+* **Frontend**: HTML5, CSS3 (CSS Variables, Flex/Grid), JavaScript (ES6+)
+* **Data**: JSON (`data.json`) - Google Sheetsから生成
+* **Infrastructure**: GitHub Pages / Vercel
+
+## 📂 ディレクトリ構成
+
+```text
+.
+├── index.html      # アプリケーション本体 (SPA風ビュー切り替え)
+├── style.css       # スタイル定義 (レスポンシブ対応)
+├── script.js       # 検索ロジック、DOM操作、イベントハンドリング
+├── data.json       # 用語データ (スプレッドシートより反映)
+└── README.md       # ドキュメント
+````
+
+## 🚀 開発環境のセットアップ
+
+本アプリは `fetch` API を使用してJSONデータを読み込むため、ローカルで動作確認するには簡易サーバーが必要です。
+
+### 推奨手順 (VS Code)
+
+1.  VS Code に拡張機能 **[Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer)** をインストール。
+2.  `index.html` を開き、画面右下の **"Go Live"** ボタンをクリック。
+3.  ブラウザが立ち上がり、アプリが起動します。
+
+### Pythonを使用する場合
+
+```bash
+# プロジェクトルートで実行
+python -m http.server 8000
+```
+
+`http://localhost:8000` にアクセスしてください。
+
+## 📝 データの更新方法 (運用フロー)
+
+用語の追加・修正・削除は、**管理用Googleスプレッドシート**で行います。
+
+1.  **スプレッドシートを編集する**
+      * 指定のGoogleスプレッドシートを開き、行を追加・編集してください。
+      * 「ウェブに公開」設定済みのため、保存ボタン等は不要です（自動保存）。
+2.  **反映を確認する**
+      * アプリをリロードすると、最新の内容が反映されます。
+      * *Note: Google側のキャッシュにより、反映まで数分（最大5分程度）かかる場合があります。*
+
+### ⚠️ 注意事項: data.json について
+
+リポジトリ内の `data.json` は、通信エラー時やオフライン時に表示される**バックアップ（フォールバック）データ**です。
+スプレッドシートの内容とは自動同期しないため、定期的に（例: 学園祭直前など）スプレッドシートの内容をエクスポートして `data.json` を更新することを推奨します。  保存すると、Live Serverが自動的にリロードし反映されます。
+
+## 🤝 開発方針
+
+  * **コミットルール**: 機能追加ごとにコミットを分け、わかりやすいメッセージを記述すること。
+  * **マージ基準**: `main` ブランチへのマージは、ローカルサーバーでの動作確認およびデータ形式の整合性が取れていることを確認してから行うこと。
+
+## 📄 License
+
+Internal use for Shirasagi Festival Executive Committee.
