@@ -39,6 +39,19 @@ body {
 .app-title { font-size: 28px; margin: 0; color: var(--primary); letter-spacing: 0.1em; }
 .subtitle { font-size: 14px; color: var(--text-sub); font-weight: normal; }
 
+.logo-container {
+    margin-bottom: 10px;
+    /* 必要に応じて影などをつける */
+    /* filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); */
+}
+
+.logo-img {
+    width: 80px;  /* 画像の大きさ */
+    height: 80px;
+    object-fit: contain; /* 縦横比を崩さず表示 */
+    border-radius: 16px; /* 角を少し丸くする場合 */
+}
+
 .home-search-wrapper { width: 100%; max-width: 400px; position: relative; margin-bottom: 30px; }
 .search-input-lg { width: 100%; padding: 16px 20px; border-radius: 30px; border: 1px solid #ddd; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); outline: none; transition: 0.3s; box-sizing: border-box; }
 .search-input-lg:focus { border-color: var(--primary); box-shadow: 0 4px 16px rgba(0, 86, 179, 0.2); }
