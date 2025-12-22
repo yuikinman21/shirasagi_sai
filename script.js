@@ -16,6 +16,8 @@ const noResultMsg = document.getElementById('no-result');
 const resultCountSpan = document.getElementById('result-count');
 const homeFavoritesList = document.getElementById('home-favorites-list');
 const multiSelectToggle = document.getElementById('multi-select-toggle');
+const sortMethodSelect = document.getElementById('sort-method-select');
+const sortOrderSelect = document.getElementById('sort-order-select');
 
 // モーダル関連
 const modalOverlay = document.getElementById('modal-overlay');
@@ -40,6 +42,27 @@ let favoriteIds = [];
 // --- 1. 初期化 ---
 async function init() {
     try {
+        // 先に data.js が公開した Promise を待つ（あれば）
+        if (window.sheetPromise && typeof window.sheetPromise.then === 'function') {
+            try {
+               // タイムアウト（例: 10秒）付きで sheetPromise を待つ
+                await Promise.race([
+                    window.sheetPromise,
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('sheetPromise timeout')), 10000))
+                ]);
+            } catch (e) {
+                console.warn('sheetPromise rejected:', e);
+            }
+        }
+
+        // sheetPromise の結果で termsData が埋まっていればそれを使う
+        if (window.termsData && Array.isArray(window.termsData) && window.termsData.length > 0) {
+            termsData = window.termsData;
+            renderHomeFavorites();
+            return;
+        }
+
+        // フォールバック: ローカルの data.json を使用
         const response = await fetch('data.json?' + new Date().getTime());
         if (!response.ok) throw new Error('Network response was not ok');
         termsData = await response.json();
@@ -68,20 +91,66 @@ function setupEventListeners() {
         if(homeInput.value.trim()) goToResults(homeInput.value);
     });
 
+    // ソート選択の変化でリストを再描画
+    if (sortMethodSelect) sortMethodSelect.addEventListener('change', () => renderList());
+    if (sortOrderSelect) sortOrderSelect.addEventListener('change', () => renderList());
+    // ソート方式に応じて右側のラベルを切り替える
+    function updateSortOrderLabels() {
+        if (!sortMethodSelect || !sortOrderSelect) return;
+        const method = sortMethodSelect.value;
+        // クリアして再設定（デフォルト値をリセットする）
+        sortOrderSelect.options.length = 0;
+        if (method === 'updated') {
+            // 更新順: デフォルトは「新しい順（降順）」
+            sortOrderSelect.add(new Option('新しい順', 'desc'));
+            sortOrderSelect.add(new Option('古い順', 'asc'));
+            sortOrderSelect.value = 'desc';
+        } else {
+            // タグ順・名前順: デフォルトは「昇順」
+            sortOrderSelect.add(new Option('昇順', 'asc'));
+            sortOrderSelect.add(new Option('降順', 'desc'));
+            sortOrderSelect.value = 'asc';
+        }
+    }
+    if (sortMethodSelect) sortMethodSelect.addEventListener('change', () => { updateSortOrderLabels(); renderList(); });
+    // 初期ラベル更新
+    updateSortOrderLabels();
+
+    const showAllListBtn = document.getElementById('show-all-link');
+    if(showAllListBtn) {
+        showAllListBtn.addEventListener('click', () => {
+            selectedTags.clear();
+            goToResults(""); // クエリ空で検索結果画面へ
+        });
+    }
+
     // タグエリアの開閉ボタン
     const expandBtn = document.getElementById('filter-expand-btn');
+    const closeBtn = document.getElementById('filter-close-btn');
     const tagContainer = document.getElementById('tag-container');
+    const filterBar = document.querySelector('.filter-bar');
+    
+    const toggleExpanded = () => {
+        tagContainer.classList.toggle('expanded');
+        if(filterBar) filterBar.classList.toggle('expanded');
+        
+        // ボタンのテキストを切り替え
+        const textSpan = expandBtn.querySelector('.btn-text');
+        if(tagContainer.classList.contains('expanded')) {
+            textSpan.textContent = '閉じる';
+        } else {
+            textSpan.textContent = 'タグをすべて見る';
+        }
+
+        // 展開状態を変えたらオーバーフロー判定を更新
+        checkTagOverflow();
+    };
+    
     if(expandBtn && tagContainer) {
-        expandBtn.addEventListener('click', () => {
-            tagContainer.classList.toggle('expanded');
-            
-            const textSpan = expandBtn.querySelector('.btn-text');
-            if(tagContainer.classList.contains('expanded')) {
-                textSpan.textContent = '閉じる';
-            } else {
-                textSpan.textContent = 'タグをすべて見る';
-            }
-        });
+        expandBtn.addEventListener('click', toggleExpanded);
+    }
+    if(closeBtn && tagContainer) {
+        closeBtn.addEventListener('click', toggleExpanded);
     }
     // リサイズ時にもあふれチェック
     window.addEventListener('resize', checkTagOverflow);
@@ -144,31 +213,6 @@ const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-gri
 
     if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
     if(modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
-
-    // お問い合わせ
-    if(openContactBtn) openContactBtn.addEventListener('click', () => contactOverlay.classList.add('active'));
-    if(contactCloseBtn) contactCloseBtn.addEventListener('click', () => contactOverlay.classList.remove('active'));
-    if(contactOverlay) contactOverlay.addEventListener('click', (e) => { if(e.target === contactOverlay) contactOverlay.classList.remove('active'); });
-
-    if(contactForm) {
-            contactForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const type = document.getElementById('contact-type').value;
-                const detail = document.getElementById('contact-detail').value;
-                
-                // 件名
-                const subject = encodeURIComponent(`【白鷺祭用語集】${type}`);
-                
-                // 本文作成
-                // ポイント: モバイル対応のため、改行(\n)を \r\n に置換してからエンコードする
-                let bodyText = `種別: ${type}\n\n詳細:\n${detail}\n\n----------------\n送信日: ${new Date().toLocaleDateString()}`;
-                
-                // 正規表現で \n を \r\n に置換
-                const body = encodeURIComponent(bodyText.replace(/\n/g, "\r\n"));
-                
-                window.location.href = `mailto:sw23263n@st.omu.ac.jp?subject=${subject}&body=${body}`;
-            });
-        }
 }
 
 // --- 3. 画面遷移 ---
@@ -202,6 +246,7 @@ function goToHome() {
     renderHomeFavorites();
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewHome.classList.remove('hidden'); viewHome.classList.add('active');
+    window.scrollTo(0, 0);
 }
 
 // --- 4. 描画ロジック ---
@@ -222,19 +267,46 @@ function renderList() {
         }
 
         const q = currentQuery.toLowerCase().trim();
-        const term = item.term || '';
-        const reading = item.reading || '';
-        const keywords = item.keywords || '';
-        let isKeyInTag = (item.tags || []).some(t => t.toLowerCase().includes(q));
-        
-        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywords.includes(q) || isKeyInTag;
+
+        // 小文字化して比較（ケースインセンシティブ）
+        const term = (item.term || '').toLowerCase();
+        const reading = (item.reading || '').toLowerCase();
+
+        // keywords は配列になっている想定。文字列の場合も許容する。
+        let keywordsJoined = '';
+        if (Array.isArray(item.keywords)) {
+            keywordsJoined = item.keywords.join(' ').toLowerCase();
+        } else {
+            keywordsJoined = String(item.keywords || '').toLowerCase();
+        }
+        // description を検索対象に含める
+        const description = (item.description || '').toLowerCase();
+
+        let isKeyInTag = (item.tags || []).some(t => String(t).toLowerCase().includes(q));
+
+        const isTextMatch = !q || term.includes(q) || reading.includes(q) || keywordsJoined.includes(q) || description.includes(q) || isKeyInTag;
         return isTagMatch && isTextMatch;
     });
 
-    if(resultCountSpan) resultCountSpan.textContent = filtered.length;
-    noResultMsg.style.display = filtered.length === 0 ? 'block' : 'none';
+    // --- ソート適用 ---
+    let sorted = filtered.slice();
+    const method = sortMethodSelect ? sortMethodSelect.value : 'tag';
+    const order = sortOrderSelect ? sortOrderSelect.value : 'desc';
+    if (window.sortItems) {
+        if (method === 'tag') {
+            const tagContainerEl = document.getElementById('tag-container');
+            const chips = tagContainerEl ? Array.from(tagContainerEl.querySelectorAll('.chip')) : [];
+            const tagOrderArray = chips.map(c => c.dataset.cat).filter(t => t && t !== 'all' && t !== 'favorites');
+            sorted = window.sortItems(sorted, { method: 'tag', order, tagOrderArray });
+        } else {
+            sorted = window.sortItems(sorted, { method, order });
+        }
+    }
 
-    filtered.forEach((item, i) => {
+    if(resultCountSpan) resultCountSpan.textContent = sorted.length;
+    noResultMsg.style.display = sorted.length === 0 ? 'block' : 'none';
+
+    sorted.forEach((item, i) => {
         const isFav = favoriteIds.includes(item.id);
         const badgesHtml = (item.tags || []).map(tag => 
             `<span class="category-badge" data-tag="${tag}" onclick="searchByTag(event, '${tag}')">${tag}</span>`
@@ -265,21 +337,35 @@ function renderList() {
 function checkTagOverflow() {
     const tagContainer = document.getElementById('tag-container');
     const expandBtn = document.getElementById('filter-expand-btn');
-    if (!tagContainer || !expandBtn) return;
+    const filterBar = document.querySelector('.filter-bar');
+    if (!tagContainer || !expandBtn || !filterBar) return;
+
+    // PC では常に展開表示なのでスマホのみ判定
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop) {
+        filterBar.classList.remove('collapsed-overflow');
+        return;
+    }
     
-    // 一度閉じた状態で判定する
+    // 計測時はいったん閉じる
     const wasExpanded = tagContainer.classList.contains('expanded');
     tagContainer.classList.remove('expanded');
     
-    // 1px余裕を見る
+    // 1px 余裕を持ってオーバーフロー判定
     const hasOverflow = tagContainer.scrollWidth > tagContainer.clientWidth + 1;
+
+    // オーバーフローしていて未展開なら、トグルを固定表示させるフラグを付与
+    const shouldPinToggle = hasOverflow && !wasExpanded;
+    filterBar.classList.toggle('collapsed-overflow', shouldPinToggle);
     
     if (hasOverflow) {
         expandBtn.style.display = 'flex';
-        if (wasExpanded) tagContainer.classList.add('expanded');
     } else {
         expandBtn.style.display = 'none';
     }
+
+    // 元の展開状態を復元
+    if (wasExpanded) tagContainer.classList.add('expanded');
 }
 
 window.searchByTag = function(e, tag) {

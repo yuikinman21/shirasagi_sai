@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>白鷺祭用語集</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js" defer></script>
+    <script src="data.js" defer></script>
+    <script src="sort.js" defer></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -21,6 +24,7 @@
             <button id="home-search-btn" class="search-btn-primary">検索</button>
         </div>
 
+
         <div class="home-categories">
             <p class="cat-label">カテゴリから探す</p>
             <div class="cat-grid">
@@ -33,8 +37,9 @@
             </div>
         </div>
 
+        <button id="show-all-link" class="view-all-btn">用語一覧を見る ❯</button>
         <div class="home-footer">
-            <button id="open-contact-btn" class="text-link-btn">⚠️ 用語追加・不具合報告はこちら</button>
+            <a href="https://forms.gle/VD1gYno9abitxcDK7" target="_blank" rel="noopener noreferrer" class="text-link-btn">⚠️ 用語追加・不具合報告はこちら</a>
         </div>
     </div>
 </div>
@@ -59,6 +64,9 @@
             <button class="chip" data-cat="情報部">情報部</button>
             <button class="chip" data-cat="技術部">技術部</button>
             <button class="chip" data-cat="渉外部">渉外部</button>
+
+            <button class="chip" data-cat="八役">八役</button>
+            
             
             <button class="chip" data-cat="機材">機材</button>
             <button class="chip" data-cat="物品">物品</button>
@@ -67,20 +75,43 @@
             
             <button class="chip" data-cat="新歓">新歓</button>
             <button class="chip" data-cat="本祭典">本祭典</button>
+            <button class="chip" data-cat="全体">全体</button>
+            <button class="chip" data-cat="他団体">他団体</button>
             
             <button class="chip" data-cat="その他">その他</button>
         </div>
         
+        <label class="toggle-switch">
+            <input type="checkbox" id="multi-select-toggle">
+            <span class="slider"></span>
+            <span class="label-text">複数選択</span>
+        </label>
+        
         <div class="filter-controls">
-            <label class="toggle-switch">
-                <input type="checkbox" id="multi-select-toggle">
-                <span class="slider"></span>
-                <span class="label-text">複数選択</span>
-            </label>
             
             <button id="filter-expand-btn" class="filter-toggle-btn">
                 <span class="btn-text">タグをすべて見る</span>
                 <span class="btn-icon">▼</span>
+            </button>
+            
+            <div class="sort-controls-wrapper">
+                <label class="sort-controls">
+                    <span class="label-text">ソート:</span>
+                    <select id="sort-method-select" class="sort-select">
+                        <option value="tag">タグ順</option>
+                        <option value="updated">更新順</option>
+                        <option value="reading">名前（読み）</option>
+                    </select>
+                    <select id="sort-order-select" class="sort-select">
+                        <option value="asc">昇順</option>
+                        <option value="desc">降順</option>
+                    </select>
+                </label>
+            </div>
+            
+            <button id="filter-close-btn" class="filter-toggle-btn" style="display:none;">
+                <span class="btn-text">閉じる</span>
+                <span class="btn-icon">▲</span>
             </button>
         </div>
         
@@ -109,36 +140,6 @@
         </div>
         <div class="modal-body">
             <p id="modal-description">ここに詳細説明が入ります。</p>
-        </div>
-    </div>
-</div>
-
-<div id="contact-overlay" class="modal-overlay hidden">
-    <div class="modal-card">
-        <button id="contact-close-btn" class="modal-close-btn">×</button>
-        <div class="modal-header">
-            <h2>お問い合わせ</h2>
-        </div>
-        <div class="modal-body">
-            <p class="contact-desc">
-                用語の追加・修正依頼やアプリのバグは、<br>こちらからつっきーへご報告ください。
-            </p>
-            <form id="contact-form" class="contact-form">
-                <div class="form-group">
-                    <label>種別</label>
-                    <select id="contact-type">
-                        <option value="追加申請">用語の追加申請</option>
-                        <option value="修正依頼">用語の修正依頼</option>
-                        <option value="バグ報告">アプリのバグ報告</option>
-                        <option value="その他">その他</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>詳細内容</label>
-                    <textarea id="contact-detail" placeholder="追加したい用語名や内容、修正箇所などを入力してください..." rows="5"></textarea>
-                </div>
-                <button type="submit" class="submit-btn">メールアプリを起動</button>
-            </form>
         </div>
     </div>
 </div>

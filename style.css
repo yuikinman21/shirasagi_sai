@@ -29,7 +29,7 @@ body {
     background: var(--bg-body);
     transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
 }
-.view-container.hidden { opacity: 0; visibility: hidden; pointer-events: none; transform: scale(0.98); }
+.view-container.hidden { opacity: 0; visibility: hidden; pointer-events: none; transform: scale(0.98); height: 0; overflow: hidden; transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s, height 0s linear 0.4s;}
 .view-container.active { opacity: 1; visibility: visible; pointer-events: auto; transform: scale(1); z-index: 10; }
 
 /* --- 1. ホーム画面スタイル --- */
@@ -51,7 +51,7 @@ body {
 .no-fav-msg { font-size: 13px; color: #aaa; text-align: center; padding: 10px; }
 
 .home-categories { width: 100%; max-width: 400px; }
-.cat-label { font-size: 13px; color: var(--text-sub); margin-bottom: 10px; text-align: center; }
+.cat-label { font-size: 14px; font-weight: bold; color: var(--text-sub); margin-bottom: 10px; text-align: center; }
 .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .cat-card { padding: 12px; background: var(--white); border: 1px solid #eee; border-radius: 12px; font-size: 14px; color: var(--text-main); cursor: pointer; transition: 0.2s; font-family: inherit; text-align: center; }
 .cat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-card); border-color: var(--primary); }
@@ -62,9 +62,57 @@ body {
 .text-link-btn { background: none; border: none; color: var(--text-sub); font-size: 13px; text-decoration: underline; cursor: pointer; padding: 10px; }
 .text-link-btn:hover { color: var(--primary); }
 
+.home-action-area {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 24px; /* カテゴリとの間隔 */
+}
+
+
+/* カテゴリセクションのヘッダー */
+.cat-header {
+    display: flex;
+    justify-content: space-between; /* 両端揃え */
+    align-items: center;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 0 4px; /* 端に寄りすぎないように少し余白 */
+    box-sizing: border-box;
+}
+
+/* ラベルテキスト */
+.cat-label-text {
+    font-size: 14px;
+    color: var(--text-sub);
+    font-weight: bold;
+}
+
+/* 「すべて見る」ボタン */
+.view-all-btn {
+    background: none;
+    border: none;
+    color: var(--primary); /* テーマカラーを使用 */
+    font-size: 13px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 16px;
+    transition: background-color 0.2s;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.view-all-btn:hover {
+    background-color: var(--primary-bg); /* ホバー時に薄い背景色 */
+}
+
+.view-all-btn:active {
+    opacity: 0.7;
+}
+
+
 
 /* --- 2. 検索結果画面スタイル --- */
-.result-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 110; border-bottom: 1px solid #eee; }
+.result-header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 10px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 110; border-bottom: none; }
 .back-btn { background: none; border: none; font-size: 32px; color: var(--primary); cursor: pointer; padding: 0 8px; line-height: 1; }
 .header-search-box { flex: 1; }
 #result-input { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #eee; background: #f0f2f5; font-size: 14px; outline: none; box-sizing: border-box; }
@@ -72,7 +120,7 @@ body {
 
 /* ▼▼▼ 修正: フィルターバーのレイアウト ▼▼▼ */
 .filter-bar {
-    position: sticky; top: var(--header-height); z-index: 105; background: var(--white);
+    position: sticky; top: 58px; z-index: 105; background: var(--white);
     padding: 8px 16px; border-bottom: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
     transition: all 0.3s ease;
     
@@ -80,6 +128,8 @@ body {
     display: flex;
     flex-direction: column; 
     gap: 8px;
+    position: relative;
+    position: relative;
 }
 
 /* タグエリア */
@@ -87,6 +137,7 @@ body {
     display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding-bottom: 4px;
     -webkit-overflow-scrolling: touch; scrollbar-width: none;
     max-height: 40px; transition: max-height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
 }
 .categories-scroll::-webkit-scrollbar { display: none; }
 .categories-scroll.expanded { flex-wrap: wrap; overflow-x: visible; justify-content: center; max-height: 500px; }
@@ -94,9 +145,190 @@ body {
 /* ▼▼▼ コントロールエリア（スイッチと開閉ボタン） ▼▼▼ */
 .filter-controls {
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
     width: 100%;
+}
+
+/* タグをすべて見るボタンを右側に寄せる */
+#filter-expand-btn { margin-left: auto; }
+
+/* ソート関連ラッパー: スマホでは初期非表示、タグ展開時に表示 */
+.sort-controls-wrapper {
+    display: none; /* スマホでは初期非表示 */
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    width: 100%;
+}
+
+/* 閉じるボタンは初期非表示 */
+#filter-close-btn {
+    display: none;
+}
+
+/* タグ展開時のレイアウト: タグ一覧＋複数選択→線→ソート→線→閉じる */
+.filter-bar.expanded .filter-controls {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* タグエリアを相対配置にして、複数選択を絶対配置可能に */
+.filter-bar.expanded .categories-scroll {
+    position: relative;
+    padding-bottom: 12px;
+    margin-bottom: 0;
+    /* 中央揃えは維持（justify-content: center） */
+}
+
+/* 複数選択をタグ列の下の行・左側に配置 */
+.filter-bar.expanded .toggle-switch {
+    order: 999;           /* タグ群の後ろに回す */
+    flex-basis: 100%;     /* 新しい行を占有 */
+    display: inline-flex;
+    align-items: center;
+    margin-top: 6px;
+}
+
+/* タグエリア全体の下に線 */
+.filter-bar.expanded .categories-scroll::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e0e0e0;
+}
+
+/* ソート */
+.filter-bar.expanded .sort-controls-wrapper {
+    display: flex;
+    order: 1;
+    padding: 12px 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* 閉じるボタン */
+.filter-bar.expanded #filter-expand-btn {
+    order: 2;
+    padding-top: 8px;
+    justify-content: flex-end;
+}
+
+/* 展開時は「タグをすべて見る」のアイコンを上向きに */
+.filter-bar.expanded #filter-expand-btn .btn-icon {
+    transform: rotate(180deg);
+}
+
+/* デスクトップでは常時表示 */
+@media (min-width: 768px) {
+    /* PC: 上部固定。1行目=タグ（折り返し表示）、2行目=左:複数選択 右:ソート */
+    .filter-bar { position: sticky; top: 58px; z-index: 105; padding-bottom: 12px; padding-top: 8px; }
+    .categories-scroll { flex-wrap: wrap; overflow-x: visible; justify-content: flex-start; max-height: none; margin-bottom: 4px; }
+    .filter-controls { display: flex; align-items: center; gap: 12px; justify-content: flex-end; }
+    /* PCでは「タグをすべて見る」「閉じる」は非表示 */
+    #filter-expand-btn, #filter-close-btn { display: none !important; }
+    /* 複数選択はデフォルト位置に固定（フィルターバーの左下） */
+    .toggle-switch { position: absolute !important; left: 16px !important; bottom: 6px !important; }
+    .sort-controls-wrapper { display: flex !important; width: auto; padding: 0 !important; border-bottom: none !important; margin-left: auto; align-items: center; }
+}
+
+/* スマホ専用の調整 */
+@media (max-width: 767px) {
+    /* スマホでは常にフィルターバーを1つのまとまりにする */
+    .filter-bar {
+        position: sticky; 
+        top: 58px; 
+        z-index: 105; 
+        padding-bottom: 12px;
+        padding-top: 8px;
+        min-height: auto;
+    }
+    
+    /* スマホでは常にトグルを左下に固定表示 */
+    .toggle-switch {
+        position: absolute !important;
+        left: 12px !important;
+        bottom: 6px !important;
+        transform: none !important;
+        margin: 0 !important;
+        padding: 4px 8px !important;
+        border: none !important;
+        background: var(--white) !important;
+        border-radius: 14px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        z-index: 120 !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .filter-bar.collapsed-overflow {
+        position: sticky;
+        min-height: auto;
+    }
+    
+    .filter-bar.collapsed-overflow .categories-scroll {
+        padding-bottom: 4px;
+    }
+}
+
+/* ソート関連コントロールの調整: タグやカードと雰囲気を合わせる */
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
+
+.sort-controls .label-text {
+    white-space: nowrap;
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.sort-select {
+    padding: 8px 12px;
+    border-radius: 12px;
+    border: 1px solid #dbe4ff;
+    background: linear-gradient(180deg, #fafdff 0%, #f3f7ff 100%);
+    color: var(--text-main);
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    appearance: none;
+    min-width: 0;
+    flex-shrink: 1;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.sort-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(0,86,179,0.12);
+    transform: translateY(-1px);
+}
+
+/* ドロップダウンであることが視認できるよう、右端に逆三角アイコンを表示 */
+.sort-select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0 L5 6 L10 0 Z' fill='%23666' /></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 10px 6px;
+    padding-right: 36px; /* アイコン分の余白を確保 */
+}
+
+/* ドロップダウンリストの色味を合わせる（対応ブラウザ限定） */
+.sort-select option {
+    background: #ffffff;
+    color: var(--text-main);
+}
+.sort-select option:checked {
+    background: var(--primary-bg);
+    color: var(--primary);
 }
 
 .filter-toggle-btn {
@@ -108,13 +340,50 @@ body {
 .categories-scroll.expanded + .filter-controls .btn-icon { transform: rotate(180deg); } /* divを経由してアイコンを回転させるセレクタだと少し複雑になるため、JSでクラス付与か、シンプルに回転なしでもOKですが、必要ならJSでボタンにクラスを付けたほうが確実です */
 
 /* スイッチのデザイン */
-.toggle-switch { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 11px; color: var(--text-sub); font-weight: bold; }
+.toggle-switch { 
+    display: flex; 
+    align-items: center; 
+    cursor: pointer; 
+    font-size: 11px; 
+    color: var(--text-sub); 
+    font-weight: bold;
+    position: absolute;
+    left: 16px;
+    bottom: 8px;
+    z-index: 120;
+    background: var(--white);
+    padding: 4px 8px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin: 0;
+    border: none;
+}
 .toggle-switch input { display: none; }
 .slider { position: relative; width: 36px; height: 20px; background-color: #e0e0e0; border-radius: 20px; transition: 0.3s; }
 .slider::before { content: ""; position: absolute; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 .toggle-switch input:checked + .slider { background-color: var(--primary); }
 .toggle-switch input:checked + .slider::before { transform: translateX(16px); }
 .toggle-switch input:checked ~ .label-text { color: var(--primary); }
+
+/* スマホでタグが折り込まれるときはトグルを左下に固定表示 */
+.filter-bar.collapsed-overflow .toggle-switch {
+    position: absolute !important;
+    left: 12px !important;
+    bottom: 10px !important;
+    transform: none !important;
+    background: var(--white) !important;
+    padding: 4px 8px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    z-index: 120 !important;
+    pointer-events: auto !important;
+    -webkit-transform: none !important;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
 
 
 /* チップ */
@@ -176,6 +445,9 @@ body {
 .category-badge[data-tag="情報部"] { background-color: #e1f5fe; color: #0277bd; }
 .category-badge[data-tag="渉外部"] { background-color: #f3e5f5; color: #7b1fa2; }
 .category-badge[data-tag="技術部"] { background-color: #e8f5e9; color: #2e7d32; }
+.category-badge[data-tag="八役"] { background-color: #e3f2fd; color: #1565c0; }
+
 .category-badge[data-tag="機材"], .category-badge[data-tag="物品"], .category-badge[data-tag="作業"], .category-badge[data-tag="場所"] { background-color: #eceff1; color: #37474f; }
 .category-badge[data-tag="新歓"], .category-badge[data-tag="本祭典"] { background-color: #fff3e0; color: #ef6c00; }
+.category-badge[data-tag="全体"], .category-badge[data-tag="他団体"] { background-color: #ffebee; color: #c62828; }
 .category-badge[data-tag="その他"] { background-color: #f5f5f5; color: #616161; }
