@@ -144,31 +144,6 @@ const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-gri
 
     if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
     if(modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
-
-    // お問い合わせ
-    if(openContactBtn) openContactBtn.addEventListener('click', () => contactOverlay.classList.add('active'));
-    if(contactCloseBtn) contactCloseBtn.addEventListener('click', () => contactOverlay.classList.remove('active'));
-    if(contactOverlay) contactOverlay.addEventListener('click', (e) => { if(e.target === contactOverlay) contactOverlay.classList.remove('active'); });
-
-    if(contactForm) {
-            contactForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const type = document.getElementById('contact-type').value;
-                const detail = document.getElementById('contact-detail').value;
-                
-                // 件名
-                const subject = encodeURIComponent(`【白鷺祭用語集】${type}`);
-                
-                // 本文作成
-                // ポイント: モバイル対応のため、改行(\n)を \r\n に置換してからエンコードする
-                let bodyText = `種別: ${type}\n\n詳細:\n${detail}\n\n----------------\n送信日: ${new Date().toLocaleDateString()}`;
-                
-                // 正規表現で \n を \r\n に置換
-                const body = encodeURIComponent(bodyText.replace(/\n/g, "\r\n"));
-                
-                window.location.href = `mailto:sw23263n@st.omu.ac.jp?subject=${subject}&body=${body}`;
-            });
-        }
 }
 
 // --- 3. 画面遷移 ---
