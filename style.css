@@ -391,7 +391,7 @@ body {
 .map-fab-btn {
     position: absolute; 
     bottom: -15px;
-    right: -70px;
+    right: -110px;
     width: 56px;
     height: 56px;
     
@@ -472,6 +472,12 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.view-all-wrapper {
+    position: relative;       /* ボタン位置の基準点にする */
+    display: inline-block;    /* 中身（ボタン）の幅に合わせる */
+    margin-top: 20px;         /* 上との間隔 */
 }
 
 
