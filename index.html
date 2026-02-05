@@ -42,6 +42,10 @@
             <a href="https://forms.gle/VD1gYno9abitxcDK7" target="_blank" rel="noopener noreferrer" class="text-link-btn">⚠️ 用語追加・不具合報告はこちら</a>
         </div>
     </div>
+
+    <button id="map-fab-btn" class="map-fab-btn" aria-label="地図を開く">
+        🗺️
+    </button>
 </div>
 
 <div id="view-search-results" class="view-container hidden">
@@ -141,6 +145,28 @@
         <div class="modal-body">
             <p id="modal-description">ここに詳細説明が入ります。</p>
         </div>
+    </div>
+</div>
+
+<div id="view-map" class="view-container hidden">
+    <header class="result-header">
+        <button id="map-back-btn" class="back-btn" aria-label="戻る">
+            <span class="icon">‹</span>
+        </button>
+        <h2 style="font-size:18px; margin:0; flex:1; text-align:center;">会場マップ</h2>
+        <div style="width:32px;"></div>
+    </header>
+
+    <div class="map-wrapper" id="map-wrapper">
+        <div class="map-content" id="map-content">
+            <img src="https://placehold.jp/3d4070/ffffff/1000x1000.png?text=Map%20Test" alt="会場地図" class="map-image" id="map-image">
+        </div>
+    </div>
+
+    <div class="map-controls">
+        <button id="zoom-in" class="zoom-btn">＋</button>
+        <button id="zoom-reset" class="zoom-btn">↺</button>
+        <button id="zoom-out" class="zoom-btn">－</button>
     </div>
 </div>
 

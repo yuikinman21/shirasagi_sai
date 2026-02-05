@@ -213,6 +213,16 @@ const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-gri
 
     if(modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
     if(modalOverlay) modalOverlay.addEventListener('click', (e) => { if(e.target === modalOverlay) closeModal(); });
+
+    // --- 地図関連のイベントリスナー ---
+    const mapFabBtn = document.getElementById('map-fab-btn');
+    const mapBackBtn = document.getElementById('map-back-btn');
+    
+    if(mapFabBtn) mapFabBtn.addEventListener('click', goToMap);
+    if(mapBackBtn) mapBackBtn.addEventListener('click', closeMap);
+    
+    // 地図操作の初期化
+    initMapControls();
 }
 
 // --- 3. 画面遷移 ---
@@ -434,4 +444,109 @@ function closeModal() { modalOverlay.classList.remove('active'); }
 function updateModalFavBtn(id) {
     if (favoriteIds.includes(id)) { modalFavBtn.classList.add('active'); modalFavBtn.textContent = '★'; }
     else { modalFavBtn.classList.remove('active'); modalFavBtn.textContent = '☆'; }
+}
+
+// --- 地図機能ロジック ---
+
+const viewMap = document.getElementById('view-map');
+const mapContent = document.getElementById('map-content');
+let mapState = { scale: 1, x: 0, y: 0 };
+
+function goToMap() {
+    viewHome.classList.remove('active'); viewHome.classList.add('hidden');
+    // 検索結果が出ていればそれも隠す
+    viewResults.classList.remove('active'); viewResults.classList.add('hidden');
+    
+    viewMap.classList.remove('hidden'); viewMap.classList.add('active');
+    
+    // 地図位置のリセット
+    resetMap();
+}
+
+function closeMap() {
+    viewMap.classList.remove('active'); viewMap.classList.add('hidden');
+    viewHome.classList.remove('hidden'); viewHome.classList.add('active');
+}
+
+function resetMap() {
+    mapState = { scale: 1, x: 0, y: 0 };
+    updateMapTransform();
+}
+
+function updateMapTransform() {
+    if(!mapContent) return;
+    mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
+}
+
+function initMapControls() {
+    const mapWrapper = document.getElementById('map-wrapper');
+    const zoomIn = document.getElementById('zoom-in');
+    const zoomOut = document.getElementById('zoom-out');
+    const zoomReset = document.getElementById('zoom-reset');
+
+    if(!mapWrapper || !mapContent) return;
+
+    // --- 1. ボタン操作 ---
+    if(zoomIn) zoomIn.addEventListener('click', () => {
+        mapState.scale = Math.min(mapState.scale + 0.2, 4.0); // 最大4倍
+        updateMapTransform();
+    });
+    
+    if(zoomOut) zoomOut.addEventListener('click', () => {
+        mapState.scale = Math.max(mapState.scale - 0.2, 0.5); // 最小0.5倍
+        updateMapTransform();
+    });
+
+    if(zoomReset) zoomReset.addEventListener('click', resetMap);
+
+    // --- 2. ドラッグ操作 (マウス & タッチ) ---
+    let isDragging = false;
+    let startX, startY;
+    let initialX, initialY;
+
+    const startDrag = (e) => {
+        if(e.target.closest('.map-controls')) return; // ボタン操作ならドラッグしない
+        isDragging = true;
+        // タッチかマウスかで座標取得を分ける
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        startX = clientX;
+        startY = clientY;
+        initialX = mapState.x;
+        initialY = mapState.y;
+        
+        mapContent.style.transition = 'none'; // ドラッグ中はアニメーションを切る
+    };
+
+    const onDrag = (e) => {
+        if (!isDragging) return;
+        e.preventDefault(); // スクロール防止
+        
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+
+        mapState.x = initialX + dx;
+        mapState.y = initialY + dy;
+        
+        updateMapTransform();
+    };
+
+    const endDrag = () => {
+        isDragging = false;
+        mapContent.style.transition = 'transform 0.1s ease-out'; // アニメーションを戻す
+    };
+
+    // イベント登録
+    mapWrapper.addEventListener('mousedown', startDrag);
+    mapWrapper.addEventListener('touchstart', startDrag, { passive: false });
+
+    window.addEventListener('mousemove', onDrag);
+    window.addEventListener('touchmove', onDrag, { passive: false });
+
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
 }

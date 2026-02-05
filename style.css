@@ -385,6 +385,115 @@ body {
     opacity: 1 !important;
 }
 
+/* ▼▼▼ 追加: 地図機能のスタイル ▼▼▼ */
+
+/* ホーム画面右下の地図ボタン (Floating Action Button) */
+.map-fab-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #fff;
+    font-size: 28px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.4);
+    cursor: pointer;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s, background 0.2s;
+}
+.map-fab-btn:active {
+    transform: scale(0.95);
+    background: #004494;
+}
+
+/* 地図ビュー */
+#view-map {
+    background: #333; /* 地図が見やすいように背景を暗く */
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+#view-map .result-header {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--text-main);
+}
+
+/* 地図表示エリア（ここを窓にして中身を動かす） */
+.map-wrapper {
+    flex: 1;
+    overflow: hidden; /* はみ出した部分を隠す */
+    position: relative;
+    cursor: grab;
+    touch-action: none; /* スマホでのブラウザ標準スクロールを無効化 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: radial-gradient(#444 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+.map-wrapper:active {
+    cursor: grabbing;
+}
+
+/* 動かす対象のコンテナ */
+.map-content {
+    transform-origin: center center;
+    transition: transform 0.1s ease-out; /* ドラッグ追従をスムーズに */
+}
+
+.map-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    pointer-events: none; /* 画像自体のドラッグを防ぐ */
+    user-select: none;
+}
+
+/* 拡大縮小ボタン */
+.map-controls {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 16px;
+    z-index: 10;
+    background: rgba(255,255,255,0.8);
+    padding: 8px 16px;
+    border-radius: 30px;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.zoom-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+}
+.zoom-btn:active {
+    background: #eee;
+    transform: scale(0.9);
+}
+
 
 /* チップ */
 .chip { padding: 6px 14px; border-radius: 6px; font-size: 13px; border: 1px solid #eee; background: var(--white); color: var(--text-sub); white-space: nowrap; cursor: pointer; transition: 0.2s; user-select: none; flex-shrink: 0; font-family: inherit; line-height: inherit; appearance: none; }
