@@ -216,10 +216,10 @@ const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-gri
 
     // --- 地図関連のイベントリスナー ---
     const mapFabBtn = document.getElementById('map-fab-btn');
-    const mapBackBtn = document.getElementById('map-back-btn');
+    const mapSearchBtn = document.getElementById('map-search-btn');
     
     if(mapFabBtn) mapFabBtn.addEventListener('click', goToMap);
-    if(mapBackBtn) mapBackBtn.addEventListener('click', closeMap);
+    if(mapSearchBtn) mapSearchBtn.addEventListener('click', closeMap);
     
     // 地図操作の初期化
     initMapControls();

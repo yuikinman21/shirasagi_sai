@@ -385,113 +385,93 @@ body {
     opacity: 1 !important;
 }
 
-/* ▼▼▼ 追加: 地図機能のスタイル ▼▼▼ */
+/* style.css の末尾に追加・修正 */
 
-/* ホーム画面右下の地図ボタン (Floating Action Button) */
+/* --- 地図ボタン (FAB) のデザイン変更 --- */
 .map-fab-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 20px;
-    width: 60px;
-    height: 60px;
+    position: absolute; 
+    bottom: -15px;
+    right: -70px;
+    width: 56px;
+    height: 56px;
+    
+    /* ▼▼▼ 変更: 背景を白、アイコンを青に ▼▼▼ */
+    background: #ffffff;
+    color: var(--primary);
+    border: 1px solid #e0e0e0; /* 薄い枠線を追加 */
+    
     border-radius: 50%;
-    background: var(--primary);
-    color: #fff;
-    font-size: 28px;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0, 86, 179, 0.4);
+    font-size: 26px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* 影も少し控えめに */
     cursor: pointer;
-    z-index: 100;
+    z-index: 10;
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: transform 0.2s, background 0.2s;
+    transition: all 0.2s ease;
 }
+
+/* ▼▼▼ 追加: ホバー時の効果 ▼▼▼ */
+.map-fab-btn:hover {
+    background: #f5f7fa; /* 薄いグレー */
+    transform: scale(1.05); /* 少し大きく */
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
 .map-fab-btn:active {
     transform: scale(0.95);
-    background: #004494;
+    background: #eef2f6;
 }
 
-/* 地図ビュー */
-#view-map {
-    background: #333; /* 地図が見やすいように背景を暗く */
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-}
 
-#view-map .result-header {
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--text-main);
-}
+/* --- 地図画面のコントローラー配置変更 --- */
 
-/* 地図表示エリア（ここを窓にして中身を動かす） */
-.map-wrapper {
-    flex: 1;
-    overflow: hidden; /* はみ出した部分を隠す */
-    position: relative;
-    cursor: grab;
-    touch-action: none; /* スマホでのブラウザ標準スクロールを無効化 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-image: radial-gradient(#444 1px, transparent 1px);
-    background-size: 20px 20px;
-}
-.map-wrapper:active {
-    cursor: grabbing;
-}
-
-/* 動かす対象のコンテナ */
-.map-content {
-    transform-origin: center center;
-    transition: transform 0.1s ease-out; /* ドラッグ追従をスムーズに */
-}
-
-.map-image {
-    display: block;
-    max-width: 100%;
-    height: auto;
-    pointer-events: none; /* 画像自体のドラッグを防ぐ */
-    user-select: none;
-}
-
-/* 拡大縮小ボタン */
+/* 拡大縮小ボタンのコンテナを右下に縦並び配置 */
 .map-controls {
     position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
+    /* 位置変更: 右下 */
+    bottom: 40px; 
+    right: 20px;
+    left: auto; /* 中央揃え解除 */
+    transform: none; /* 中央揃え解除 */
+    
+    /* 縦並びにする */
     display: flex;
-    gap: 16px;
+    flex-direction: column; 
+    gap: 12px;
+    
     z-index: 10;
-    background: rgba(255,255,255,0.8);
-    padding: 8px 16px;
-    border-radius: 30px;
+    background: rgba(255,255,255,0.9);
+    padding: 8px; /* パディングを少し小さく */
+    border-radius: 16px; /* 角丸調整 */
     backdrop-filter: blur(4px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
 }
 
-.zoom-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+/* キャンパス選択プルダウン */
+.map-header-select {
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 20px;
     border: 1px solid #ddd;
-    background: #fff;
-    font-size: 20px;
+    background: #f9f9f9;
+    color: var(--text-main);
     font-weight: bold;
-    color: #555;
+    outline: none;
     cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: 0.2s;
 }
-.zoom-btn:active {
-    background: #eee;
-    transform: scale(0.9);
+
+/* ヘッダー右上の検索ボタン */
+.map-header-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--primary);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 

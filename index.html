@@ -38,14 +38,13 @@
         </div>
 
         <button id="show-all-link" class="view-all-btn">用語一覧を見る ❯</button>
+            <button id="map-fab-btn" class="map-fab-btn" aria-label="地図を開く">🗺️</button>
         <div class="home-footer">
             <a href="https://forms.gle/VD1gYno9abitxcDK7" target="_blank" rel="noopener noreferrer" class="text-link-btn">⚠️ 用語追加・不具合報告はこちら</a>
         </div>
     </div>
 
-    <button id="map-fab-btn" class="map-fab-btn" aria-label="地図を開く">
-        🗺️
-    </button>
+
 </div>
 
 <div id="view-search-results" class="view-container hidden">
@@ -149,12 +148,14 @@
 </div>
 
 <div id="view-map" class="view-container hidden">
-    <header class="result-header">
-        <button id="map-back-btn" class="back-btn" aria-label="戻る">
-            <span class="icon">‹</span>
+    <header class="result-header" style="justify-content: space-between;">
+        <select id="map-campus-select" class="map-header-select">
+            <option value="nakamozu">中百舌鳥キャンパス</option>
+        </select>
+
+        <button id="map-search-btn" class="map-header-btn" aria-label="検索に戻る">
+            🔍
         </button>
-        <h2 style="font-size:18px; margin:0; flex:1; text-align:center;">会場マップ</h2>
-        <div style="width:32px;"></div>
     </header>
 
     <div class="map-wrapper" id="map-wrapper">
