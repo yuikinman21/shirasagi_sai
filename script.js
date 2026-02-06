@@ -446,21 +446,21 @@ function updateModalFavBtn(id) {
     else { modalFavBtn.classList.remove('active'); modalFavBtn.textContent = '☆'; }
 }
 
-// --- 地図機能ロジック ---
+// --- 地図機能ロジック（高機能版） ---
 
 const viewMap = document.getElementById('view-map');
 const mapContent = document.getElementById('map-content');
+const mapImage = document.getElementById('map-image'); // 画像要素を取得
 let mapState = { scale: 1, x: 0, y: 0 };
 
 function goToMap() {
     viewHome.classList.remove('active'); viewHome.classList.add('hidden');
-    // 検索結果が出ていればそれも隠す
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     
     viewMap.classList.remove('hidden'); viewMap.classList.add('active');
     
-    // 地図位置のリセット
-    resetMap();
+    // 地図表示時にリセット
+    setTimeout(resetMap, 100);
 }
 
 function closeMap() {
@@ -469,12 +469,42 @@ function closeMap() {
 }
 
 function resetMap() {
+    // 画面中央にリセット
     mapState = { scale: 1, x: 0, y: 0 };
     updateMapTransform();
 }
 
+// 座標とスケールを適用しつつ、画面外に行き過ぎないように制限する
 function updateMapTransform() {
-    if(!mapContent) return;
+    if(!mapContent || !viewMap) return;
+
+    // 1. スケール制限 (0.5倍 〜 5.0倍)
+    mapState.scale = Math.min(Math.max(mapState.scale, 0.5), 5.0);
+
+    // 2. 移動範囲の制限 (バウンダリーチェック)
+    // 現在の表示領域のサイズ
+    const viewportW = viewMap.clientWidth;
+    const viewportH = viewMap.clientHeight;
+    
+    // 地図の現在の見かけのサイズ
+    // ※ mapContent自体はサイズを持たず、中のimg等がサイズを持つ想定
+    //   簡単な方法として、1000x1000の画像と仮定するか、getBoundingClientRectを使う
+    const rect = mapContent.getBoundingClientRect();
+    const currentW = rect.width; // scale適用後の幅
+    const currentH = rect.height;
+
+    // 画面の半分くらいまでは余白を許す（完全にロックすると使いにくい場合があるため）
+    const limitX = (currentW * 0.8) / 2;
+    const limitY = (currentH * 0.8) / 2;
+
+    // 中心からのズレを制限
+    // ※ 厳密な境界計算は複雑になるため、簡易的に「画面から消え失せない」レベルに制限
+    if (mapState.x > limitX) mapState.x = limitX;
+    if (mapState.x < -limitX) mapState.x = -limitX;
+    if (mapState.y > limitY) mapState.y = limitY;
+    if (mapState.y < -limitY) mapState.y = -limitY;
+
+    // 適用
     mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
 }
 
@@ -486,43 +516,74 @@ function initMapControls() {
 
     if(!mapWrapper || !mapContent) return;
 
-    // --- 1. ボタン操作 ---
+    // --- ボタン操作 ---
     if(zoomIn) zoomIn.addEventListener('click', () => {
-        mapState.scale = Math.min(mapState.scale + 0.2, 4.0); // 最大4倍
+        mapState.scale += 0.5;
         updateMapTransform();
     });
-    
     if(zoomOut) zoomOut.addEventListener('click', () => {
-        mapState.scale = Math.max(mapState.scale - 0.2, 0.5); // 最小0.5倍
+        mapState.scale -= 0.5;
         updateMapTransform();
     });
-
     if(zoomReset) zoomReset.addEventListener('click', resetMap);
 
-    // --- 2. ドラッグ操作 (マウス & タッチ) ---
-    let isDragging = false;
-    let startX, startY;
-    let initialX, initialY;
 
-    const startDrag = (e) => {
-        if(e.target.closest('.map-controls')) return; // ボタン操作ならドラッグしない
+    // --- タッチ & マウス操作 (ピンチズーム対応) ---
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let initialX = 0, initialY = 0;
+
+    // ピンチズーム用変数
+    let initialDistance = 0;
+    let initialScale = 1;
+
+    // 2点間の距離を計算する関数
+    const getDistance = (touches) => {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.hypot(dx, dy);
+    };
+
+    const onPointerDown = (e) => {
+        if(e.target.closest('.map-controls')) return;
+        
+        // タッチイベントかつ2本指の場合 -> ピンチ開始
+        if (e.touches && e.touches.length === 2) {
+            isDragging = false; // ドラッグは中断
+            initialDistance = getDistance(e.touches);
+            initialScale = mapState.scale;
+            return;
+        }
+
+        // 1本指 または マウス -> ドラッグ開始
         isDragging = true;
-        // タッチかマウスかで座標取得を分ける
+        mapContent.style.transition = 'none'; // 操作中はアニメーションOFF
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
+
         startX = clientX;
         startY = clientY;
         initialX = mapState.x;
         initialY = mapState.y;
-        
-        mapContent.style.transition = 'none'; // ドラッグ中はアニメーションを切る
     };
 
-    const onDrag = (e) => {
+    const onPointerMove = (e) => {
+        // ピンチ操作中 (2本指)
+        if (e.touches && e.touches.length === 2) {
+            const currentDistance = getDistance(e.touches);
+            if (initialDistance > 0) {
+                const diff = currentDistance / initialDistance;
+                mapState.scale = initialScale * diff;
+                updateMapTransform();
+            }
+            return;
+        }
+
+        // ドラッグ操作中
         if (!isDragging) return;
-        e.preventDefault(); // スクロール防止
-        
+        if (e.cancelable) e.preventDefault(); // スクロール防止
+
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
@@ -532,21 +593,32 @@ function initMapControls() {
         mapState.x = initialX + dx;
         mapState.y = initialY + dy;
         
-        updateMapTransform();
+        // ドラッグ中はあえて updateMapTransform を呼ばず、
+        // 直接 style をいじることで、バウンダリー制限の「引っかかり」をなくし、
+        // 指を離したときに updateMapTransform で位置補正するのも自然ですが、
+        // 今回はシンプルに常時更新します。
+        mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
     };
 
-    const endDrag = () => {
+    const onPointerUp = (e) => {
         isDragging = false;
-        mapContent.style.transition = 'transform 0.1s ease-out'; // アニメーションを戻す
+        // 指を離したタイミングで境界チェック＆アニメーション復帰
+        mapContent.style.transition = 'transform 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1)';
+        updateMapTransform();
+        
+        // 遷移設定は少し経ったら消す（次のドラッグのため）
+        setTimeout(() => {
+            mapContent.style.transition = '';
+        }, 200);
     };
 
     // イベント登録
-    mapWrapper.addEventListener('mousedown', startDrag);
-    mapWrapper.addEventListener('touchstart', startDrag, { passive: false });
+    mapWrapper.addEventListener('mousedown', onPointerDown);
+    mapWrapper.addEventListener('touchstart', onPointerDown, { passive: false });
 
-    window.addEventListener('mousemove', onDrag);
-    window.addEventListener('touchmove', onDrag, { passive: false });
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
 
-    window.addEventListener('mouseup', endDrag);
-    window.addEventListener('touchend', endDrag);
+    window.addEventListener('mouseup', onPointerUp);
+    window.addEventListener('touchend', onPointerUp);
 }
