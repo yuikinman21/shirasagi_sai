@@ -385,33 +385,99 @@ body {
     opacity: 1 !important;
 }
 
-/* 1. ヘッダーを画面上に固定し、地図より手前に表示する */
-#view-map .result-header {
-    position: absolute; /* 画面に対して絶対配置 */
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 500; /* 地図(map-content)より確実に上に表示 */
+/* style.css の末尾に追加・修正 */
+
+/* --- 地図ボタン (FAB) のデザイン変更 --- */
+.map-fab-btn {
+    position: absolute; 
+    bottom: -15px;
+    right: -110px;
+    width: 56px;
+    height: 56px;
     
-    background: rgba(255, 255, 255, 0.95); /* 背景を少し透過 */
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1); /* 影をつける */
-    border-bottom: none;
-    box-sizing: border-box;
+    /* ▼▼▼ 変更: 背景を白、アイコンを青に ▼▼▼ */
+    background: #ffffff;
+    color: var(--primary);
+    border: 1px solid #e0e0e0; /* 薄い枠線を追加 */
+    
+    border-radius: 50%;
+    font-size: 26px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* 影も少し控えめに */
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
 }
 
-/* 2. 地図表示エリアの調整（ヘッダーが重なる分、地図の開始位置を下げる） */
-#view-map .map-wrapper {
-    width: 100%;
-    height: 100%;
-    padding-top: 70px; /* ヘッダーの高さ＋余白分だけ下げる */
-    box-sizing: border-box;
+/* ▼▼▼ 追加: ホバー時の効果 ▼▼▼ */
+.map-fab-btn:hover {
+    background: #f5f7fa; /* 薄いグレー */
+    transform: scale(1.05); /* 少し大きく */
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
 }
 
-/* 3. スマホで画面全体が拡大縮小（ピンチイン・アウト）されるのを防ぐ */
-#view-map {
-    touch-action: none; /* ブラウザ標準のズーム操作を無効化 */
-    overflow: hidden;   /* はみ出し防止 */
+.map-fab-btn:active {
+    transform: scale(0.95);
+    background: #eef2f6;
+}
+
+
+/* --- 地図画面のコントローラー配置変更 --- */
+
+/* 拡大縮小ボタンのコンテナを右下に縦並び配置 */
+.map-controls {
+    position: absolute;
+    /* 位置変更: 右下 */
+    bottom: 40px; 
+    right: 20px;
+    left: auto; /* 中央揃え解除 */
+    transform: none; /* 中央揃え解除 */
+    
+    /* 縦並びにする */
+    display: flex;
+    flex-direction: column; 
+    gap: 12px;
+    
+    z-index: 10;
+    background: rgba(255,255,255,0.9);
+    padding: 8px; /* パディングを少し小さく */
+    border-radius: 16px; /* 角丸調整 */
+    backdrop-filter: blur(4px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+/* キャンパス選択プルダウン */
+.map-header-select {
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    color: var(--text-main);
+    font-weight: bold;
+    outline: none;
+    cursor: pointer;
+}
+
+/* ヘッダー右上の検索ボタン */
+.map-header-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--primary);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.view-all-wrapper {
+    position: relative;       /* ボタン位置の基準点にする */
+    display: inline-block;    /* 中身（ボタン）の幅に合わせる */
+    margin-top: 20px;         /* 上との間隔 */
 }
 
 
