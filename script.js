@@ -440,6 +440,33 @@ function openModal(item) {
     document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${t}">${t}</span>`).join('');
     updateModalFavBtn(item.id);
     modalFavBtn.onclick = (e) => { toggleFav(e, item.id); updateModalFavBtn(item.id); };
+    // 1. まず、前回表示したボタンが残っていれば削除する（リセット）
+    const existingBtn = document.getElementById('modal-map-btn');
+    if(existingBtn) existingBtn.remove();
+
+    // 2. 「場所」タグを持っている場合のみ、新しくボタンを作成して追加
+    if ((item.tags || []).includes('場所')) {
+        const btn = document.createElement('button');
+        btn.id = 'modal-map-btn'; // IDを付与して後で探せるようにする
+        btn.className = 'map-jump-btn'; // CSSは先ほどのを流用
+        btn.innerHTML = '📍 地図で場所を確認';
+        
+        // モーダル用にスタイルを少し調整（中央揃えなど）
+        btn.style.marginTop = '20px';
+        btn.style.width = '100%';
+        btn.style.justifyContent = 'center';
+        btn.style.padding = '10px';
+        btn.style.fontSize = '14px';
+
+        // クリック時の動作
+        btn.onclick = (e) => {
+            closeModal(); // モーダルを閉じる
+            window.openMapForPlace(e, item.term); // 地図へジャンプ
+        };
+
+        // modal-body の一番下に追加
+        document.querySelector('.modal-body').appendChild(btn);
+    }
     modalOverlay.classList.add('active');
 }
 function closeModal() { modalOverlay.classList.remove('active'); }
@@ -447,6 +474,20 @@ function updateModalFavBtn(id) {
     if (favoriteIds.includes(id)) { modalFavBtn.classList.add('active'); modalFavBtn.textContent = '★'; }
     else { modalFavBtn.classList.remove('active'); modalFavBtn.textContent = '☆'; }
 }
+
+// リストから地図へジャンプする関数
+window.openMapForPlace = function(e, term) {
+    e.stopPropagation(); // 親要素(li)のクリックイベント（詳細モーダルを開く）を止める
+    
+    // 地図画面へ遷移
+    goToMap();
+    
+    // 地図の検索窓に用語をセットしておく（ユーザーが何を探しているか分かりやすくするため）
+    const mapInput = document.getElementById('map-search-input');
+    if (mapInput) {
+        mapInput.value = term;
+    }
+};
 
 // --- 新・地図機能ロジック (Google Map風操作) ---
 
@@ -486,7 +527,7 @@ function centerMap() {
     const ih = mapImage.naturalHeight || 1000;
     
     // 画像の中央を画面の中央に
-    mapState.scale = 0.8; // 初期は少し引きで
+    mapState.scale = 0.3; // 初期は少し引きで
     mapState.x = (cw - iw * mapState.scale) / 2;
     mapState.y = (ch - ih * mapState.scale) / 2;
     
@@ -523,7 +564,7 @@ function initMapLogic() {
         viewMap.classList.remove('active'); viewMap.classList.add('hidden');
         viewHome.classList.remove('hidden'); viewHome.classList.add('active');
     });
-    
+
     const searchSubmit = document.getElementById('map-search-submit');
     const searchInput = document.getElementById('map-search-input');
     
