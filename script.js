@@ -512,6 +512,8 @@ function executeMapSearch() {
     }
 }
 
+// --- script.js の initMapLogic 関数を丸ごと書き換え ---
+
 function initMapLogic() {
     if(!mapContainer) return;
 
@@ -536,13 +538,16 @@ function initMapLogic() {
     }
 
 
-    // --- 2. 地図操作 (Pointer Events) ---
-    // マウス・タッチ両対応のための変数
-    let pointers = []; // 現在触れている指のリスト
+    // --- 2. 地図操作 (Pointer Events + 慣性) ---
+    let pointers = []; 
     let lastCenter = null;
     let lastDist = 0;
 
-    // 座標取得ヘルパー
+    // 慣性用の変数
+    let velocityX = 0;
+    let velocityY = 0;
+    let inertiaRequestId = null;
+
     const getPointerCenter = (ptrList) => {
         let x = 0, y = 0;
         ptrList.forEach(p => { x += p.clientX; y += p.clientY; });
@@ -553,7 +558,38 @@ function initMapLogic() {
         return Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
     };
 
+    // 慣性アニメーションを停止
+    const stopInertia = () => {
+        if(inertiaRequestId) {
+            cancelAnimationFrame(inertiaRequestId);
+            inertiaRequestId = null;
+        }
+    };
+
+    // 慣性アニメーション処理
+    const applyInertia = () => {
+        // 速度が十分小さくなったら停止して境界チェック
+        if (Math.abs(velocityX) < 0.1 && Math.abs(velocityY) < 0.1) {
+            checkBoundaries();
+            return;
+        }
+
+        // 減速（摩擦係数 0.92 くらいが自然です）
+        velocityX *= 0.92;
+        velocityY *= 0.92;
+
+        mapState.x += velocityX;
+        mapState.y += velocityY;
+
+        updateTransform();
+
+        // 次のフレームをリクエスト
+        inertiaRequestId = requestAnimationFrame(applyInertia);
+    };
+
     mapContainer.addEventListener('pointerdown', (e) => {
+        stopInertia(); // 操作開始で慣性を止める
+        
         mapContainer.setPointerCapture(e.pointerId);
         pointers.push(e);
         
@@ -562,19 +598,26 @@ function initMapLogic() {
             lastDist = getPointerDist(pointers[0], pointers[1]);
         }
         mapState.isDragging = true;
-        mapContent.style.transition = 'none'; // 操作中はアニメーションなし
+        mapContent.style.transition = 'none'; // 操作中はCSSアニメを切る
+        
+        // 速度リセット
+        velocityX = 0;
+        velocityY = 0;
     });
 
     mapContainer.addEventListener('pointermove', (e) => {
         if (!mapState.isDragging || pointers.length === 0) return;
 
-        // 指情報の更新
         const index = pointers.findIndex(p => p.pointerId === e.pointerId);
         if (index !== -1) pointers[index] = e;
 
         const currentCenter = getPointerCenter(pointers);
         const dx = currentCenter.x - lastCenter.x;
         const dy = currentCenter.y - lastCenter.y;
+
+        // 慣性のために直近の移動量を速度として記録
+        velocityX = dx;
+        velocityY = dy;
 
         // --- 移動 (Pan) ---
         mapState.x += dx;
@@ -585,27 +628,23 @@ function initMapLogic() {
             const currentDist = getPointerDist(pointers[0], pointers[1]);
             if (lastDist > 0) {
                 const scaleDiff = currentDist / lastDist;
-                
-                // ズーム中心を考慮した補正
-                // (現在のスケールでの中心点) - (移動量)
                 const oldScale = mapState.scale;
                 let newScale = oldScale * scaleDiff;
-                
-                // 制限
                 newScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
                 
-                // 中心基準でズームするための位置補正
-                // (ポインタ位置 - 画像位置) * (スケール変化分) を引く
+                // 中心ズーム補正
                 const pointerOnImageX = (currentCenter.x - mapState.x);
                 const pointerOnImageY = (currentCenter.y - mapState.y);
                 
-                // 単純化のため、中心ズームに近い挙動にする（厳密なGoogleMap計算は複雑なため）
-                // ズームした分だけ位置をずらして、ポインタ位置を維持しようとする
                 mapState.x -= pointerOnImageX * (newScale / oldScale - 1);
                 mapState.y -= pointerOnImageY * (newScale / oldScale - 1);
 
                 mapState.scale = newScale;
                 lastDist = currentDist;
+                
+                // ピンチ中は移動慣性を無効化しておく
+                velocityX = 0;
+                velocityY = 0;
             }
         }
 
@@ -620,12 +659,14 @@ function initMapLogic() {
         if (pointers.length === 0) {
             mapState.isDragging = false;
             
-            // バウンダリーチェック（画面外に行き過ぎたら戻す）
-            checkBoundaries();
+            // 指を離したら慣性アニメーション開始
+            applyInertia();
+            
         } else if (pointers.length === 1) {
-            // 2本指→1本指になったとき、残った指を基準に再設定
             lastCenter = getPointerCenter(pointers);
             lastDist = 0;
+            velocityX = 0; 
+            velocityY = 0;
         }
     };
 
@@ -633,15 +674,16 @@ function initMapLogic() {
     mapContainer.addEventListener('pointercancel', endDrag);
     mapContainer.addEventListener('pointerleave', endDrag);
     
-    // PC用ホイールズーム
+    // PC用ホイールズーム (変更なし)
     mapContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
+        stopInertia(); // ホイール操作時も慣性を止める
+        
         const scaleDiff = e.deltaY > 0 ? 0.9 : 1.1;
         const oldScale = mapState.scale;
         let newScale = oldScale * scaleDiff;
         newScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
 
-        // マウス位置を中心にズーム
         const rect = mapContainer.getBoundingClientRect();
         const pointerX = e.clientX - rect.left;
         const pointerY = e.clientY - rect.top;
@@ -655,7 +697,6 @@ function initMapLogic() {
         mapState.scale = newScale;
         updateTransform();
         
-        // ホイール操作が終わったらバウンダリーチェック（デバウンスが必要だが簡易的に）
         clearTimeout(window.wheelTimer);
         window.wheelTimer = setTimeout(checkBoundaries, 300);
     }, { passive: false });
