@@ -457,8 +457,20 @@ body {
 
 #map-search-input {
     width: 100%;
+    padding: 10px 20px;
     box-sizing: border-box;
 
+}
+
+#map-search-submit {
+    /* バーが細くなった分、ボタンの上下の隙間も減らしてバランスを取る */
+    top: 4px;
+    bottom: 4px;
+    right: 4px;
+    
+    /* ボタン内の文字サイズ微調整 */
+    font-size: 13px;
+    padding: 0 16px;
 }
 
 /* --- 地図コンテナ --- */
