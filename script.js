@@ -324,11 +324,6 @@ function renderList() {
             `<span class="category-badge" data-tag="${tag}" onclick="searchByTag(event, '${tag}')">${tag}</span>`
         ).join('');
 
-        const hasPlaceTag = (item.tags || []).includes('場所');
-        const mapBtnHtml = hasPlaceTag 
-            ? `<button class="map-jump-btn" onclick="openMapForPlace(event, '${item.term}')">📍 地図で場所を確認</button>` 
-            : '';
-
         const li = document.createElement('li');
         li.className = 'item';
         li.style.animationDelay = `${i * 0.05}s`;
@@ -344,7 +339,6 @@ function renderList() {
                 <div class="badges-wrapper no-select">${badgesHtml}</div>
             </div>
             <div class="description">${highlight(item.description, currentQuery)}</div>
-            ${mapBtnHtml}
         `;
         li.onclick = () => openModal(item);
         listContainer.appendChild(li);
@@ -446,6 +440,33 @@ function openModal(item) {
     document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${t}">${t}</span>`).join('');
     updateModalFavBtn(item.id);
     modalFavBtn.onclick = (e) => { toggleFav(e, item.id); updateModalFavBtn(item.id); };
+    // 1. まず、前回表示したボタンが残っていれば削除する（リセット）
+    const existingBtn = document.getElementById('modal-map-btn');
+    if(existingBtn) existingBtn.remove();
+
+    // 2. 「場所」タグを持っている場合のみ、新しくボタンを作成して追加
+    if ((item.tags || []).includes('場所')) {
+        const btn = document.createElement('button');
+        btn.id = 'modal-map-btn'; // IDを付与して後で探せるようにする
+        btn.className = 'map-jump-btn'; // CSSは先ほどのを流用
+        btn.innerHTML = '📍 地図で場所を確認';
+        
+        // モーダル用にスタイルを少し調整（中央揃えなど）
+        btn.style.marginTop = '20px';
+        btn.style.width = '100%';
+        btn.style.justifyContent = 'center';
+        btn.style.padding = '10px';
+        btn.style.fontSize = '14px';
+
+        // クリック時の動作
+        btn.onclick = (e) => {
+            closeModal(); // モーダルを閉じる
+            window.openMapForPlace(e, item.term); // 地図へジャンプ
+        };
+
+        // modal-body の一番下に追加
+        document.querySelector('.modal-body').appendChild(btn);
+    }
     modalOverlay.classList.add('active');
 }
 function closeModal() { modalOverlay.classList.remove('active'); }
