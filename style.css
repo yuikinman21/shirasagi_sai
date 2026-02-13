@@ -513,6 +513,45 @@ body {
     user-select: none;
 }
 
+/* 1. 「用語一覧」と「地図ボタン」をまとめる枠 */
+.view-all-wrapper {
+    position: relative;       /* ボタン位置の基準点にする */
+    display: inline-block;    /* 中身の幅に合わせる */
+    margin-top: 20px;         /* 上との間隔 */
+}
+
+/* 2. 地図ボタン (FAB) のデザインと位置 */
+.map-fab-btn {
+    position: absolute;       /* 親の枠に対して絶対配置 */
+    bottom: -15px;            /* 少し下へ */
+    right: -80px;             /* 右側へずらす（位置はお好みで調整してください） */
+    
+    width: 56px;
+    height: 56px;
+    background: #ffffff;      /* 背景は白 */
+    color: var(--primary);    /* アイコンは青 */
+    border: 1px solid #e0e0e0;
+    border-radius: 50%;
+    font-size: 26px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.map-fab-btn:hover {
+    background: #f5f7fa;
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.map-fab-btn:active {
+    transform: scale(0.95);
+    background: #eef2f6;
+}
 
 /* チップ */
 .chip { padding: 6px 14px; border-radius: 6px; font-size: 13px; border: 1px solid #eee; background: var(--white); color: var(--text-sub); white-space: nowrap; cursor: pointer; transition: 0.2s; user-select: none; flex-shrink: 0; font-family: inherit; line-height: inherit; appearance: none; }
