@@ -464,7 +464,7 @@ let mapState = {
 };
 
 // 設定
-const MIN_SCALE = 0.5;
+const MIN_SCALE = 0.2;
 const MAX_SCALE = 4.0;
 
 function goToMap() {
