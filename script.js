@@ -588,6 +588,7 @@ function initMapLogic() {
     };
 
     mapContainer.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
         stopInertia(); // 操作開始で慣性を止める
         
         mapContainer.setPointerCapture(e.pointerId);
