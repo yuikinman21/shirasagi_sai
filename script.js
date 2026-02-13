@@ -498,8 +498,8 @@ const mapImage = document.getElementById('map-image');
 
 // 状態管理
 let mapState = {
-    x: -100, // 初期位置X
-    y: -100, // 初期位置Y
+    x: 0, // 初期位置X
+    y: 0, // 初期位置Y
     scale: 1, // 初期スケール
     isDragging: false
 };
