@@ -324,6 +324,11 @@ function renderList() {
             `<span class="category-badge" data-tag="${tag}" onclick="searchByTag(event, '${tag}')">${tag}</span>`
         ).join('');
 
+        const hasPlaceTag = (item.tags || []).includes('場所');
+        const mapBtnHtml = hasPlaceTag 
+            ? `<button class="map-jump-btn" onclick="openMapForPlace(event, '${item.term}')">📍 地図で場所を確認</button>` 
+            : '';
+
         const li = document.createElement('li');
         li.className = 'item';
         li.style.animationDelay = `${i * 0.05}s`;
@@ -339,6 +344,7 @@ function renderList() {
                 <div class="badges-wrapper no-select">${badgesHtml}</div>
             </div>
             <div class="description">${highlight(item.description, currentQuery)}</div>
+            ${mapBtnHtml}
         `;
         li.onclick = () => openModal(item);
         listContainer.appendChild(li);
@@ -447,6 +453,20 @@ function updateModalFavBtn(id) {
     if (favoriteIds.includes(id)) { modalFavBtn.classList.add('active'); modalFavBtn.textContent = '★'; }
     else { modalFavBtn.classList.remove('active'); modalFavBtn.textContent = '☆'; }
 }
+
+// リストから地図へジャンプする関数
+window.openMapForPlace = function(e, term) {
+    e.stopPropagation(); // 親要素(li)のクリックイベント（詳細モーダルを開く）を止める
+    
+    // 地図画面へ遷移
+    goToMap();
+    
+    // 地図の検索窓に用語をセットしておく（ユーザーが何を探しているか分かりやすくするため）
+    const mapInput = document.getElementById('map-search-input');
+    if (mapInput) {
+        mapInput.value = term;
+    }
+};
 
 // --- 新・地図機能ロジック (Google Map風操作) ---
 
