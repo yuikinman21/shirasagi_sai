@@ -474,13 +474,29 @@ body {
     background: var(--primary);
     color: #fff;
     border: none;
-    border-radius: 50%;
-    width: 40px; height: 40px;
-    font-size: 18px;
+    
+    /* 丸(50%)からカプセル型(20px)に変更 */
+    border-radius: 20px;
+    
+    /* 横幅の固定を解除し、余白で広げる */
+    width: auto; 
+    height: 40px; /* 高さは揃える */
+    padding: 0 20px; /* 横に少し広げる */
+    
+    font-size: 14px;
+    font-weight: bold; /* 文字を太く */
+    
     cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
     flex-shrink: 0;
     box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    transition: opacity 0.2s;
+}
+
+#map-search-submit:active {
+    opacity: 0.8;
 }
 
 /* --- 地図コンテナ --- */
