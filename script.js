@@ -523,7 +523,7 @@ function initMapLogic() {
         viewMap.classList.remove('active'); viewMap.classList.add('hidden');
         viewHome.classList.remove('hidden'); viewHome.classList.add('active');
     });
-
+    
     const searchSubmit = document.getElementById('map-search-submit');
     const searchInput = document.getElementById('map-search-input');
     
