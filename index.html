@@ -149,7 +149,29 @@
     </div>
 </div>
 
+<div id="view-map" class="view-container hidden">
+    <header class="map-header">
+        <div class="map-header-top">
+            <div class="campus-select-wrapper">
+                <select id="map-campus-select" class="map-select">
+                    <option value="nakamozu">中百舌鳥キャンパス</option>
+                    </select>
+            </div>
+            <button id="map-close-btn" class="map-close-btn">×</button>
+        </div>
 
+        <div class="map-search-bar">
+            <input type="text" id="map-search-input" placeholder="マップ上で用語を検索..." autocomplete="off">
+            <button id="map-search-submit" aria-label="検索">🔍</button>
+        </div>
+    </header>
+
+    <div id="map-container" class="map-container">
+        <div id="map-content" class="map-content">
+            <img src="./nakamozu_map2025r4.png" alt="キャンパスマップ" id="map-image" class="map-image">
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
