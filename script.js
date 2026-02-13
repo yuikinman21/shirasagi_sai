@@ -156,7 +156,7 @@ function setupEventListeners() {
     window.addEventListener('resize', checkTagOverflow);
 
     // タグ選択
-const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-grid');
+    const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-grid');
     allTagContainers.forEach(container => {
         container.addEventListener('click', (e) => {
             if (e.target.closest('.no-select')) return;
@@ -216,13 +216,15 @@ const allTagContainers = document.querySelectorAll('.categories-scroll, .cat-gri
 
     // --- 地図関連のイベントリスナー ---
     const mapFabBtn = document.getElementById('map-fab-btn');
-    const mapSearchBtn = document.getElementById('map-search-btn');
     
+    // ホーム画面の「地図ボタン」で地図を開く
     if(mapFabBtn) mapFabBtn.addEventListener('click', goToMap);
-    if(mapSearchBtn) mapSearchBtn.addEventListener('click', closeMap);
     
-    // 地図操作の初期化
-    initMapControls();
+    // 新しい地図ロジックの初期化を実行
+    // (地図内の検索ボタンや閉じるボタン、ドラッグ操作などはこの中で設定されます)
+    if (typeof initMapLogic === 'function') {
+        initMapLogic();
+    }
 }
 
 // --- 3. 画面遷移 ---
@@ -446,179 +448,250 @@ function updateModalFavBtn(id) {
     else { modalFavBtn.classList.remove('active'); modalFavBtn.textContent = '☆'; }
 }
 
-// --- 地図機能ロジック（高機能版） ---
+// --- 新・地図機能ロジック (Google Map風操作) ---
 
 const viewMap = document.getElementById('view-map');
+const mapContainer = document.getElementById('map-container');
 const mapContent = document.getElementById('map-content');
-const mapImage = document.getElementById('map-image'); // 画像要素を取得
-let mapState = { scale: 1, x: 0, y: 0 };
+const mapImage = document.getElementById('map-image');
+
+// 状態管理
+let mapState = {
+    x: -100, // 初期位置X
+    y: -100, // 初期位置Y
+    scale: 1, // 初期スケール
+    isDragging: false
+};
+
+// 設定
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 4.0;
 
 function goToMap() {
     viewHome.classList.remove('active'); viewHome.classList.add('hidden');
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
-    
     viewMap.classList.remove('hidden'); viewMap.classList.add('active');
+
+    // 初期表示時に位置合わせ（初回のみ画像ロード待ちが必要かも）
+    if(mapImage.complete) centerMap();
+    else mapImage.onload = centerMap;
+}
+
+function centerMap() {
+    // 簡易的に中央あたりを表示
+    if(!mapContainer || !mapImage) return;
+    const cw = mapContainer.clientWidth;
+    const ch = mapContainer.clientHeight;
+    const iw = mapImage.naturalWidth || 1000;
+    const ih = mapImage.naturalHeight || 1000;
     
-    // 地図表示時にリセット
-    setTimeout(resetMap, 100);
-}
-
-function closeMap() {
-    viewMap.classList.remove('active'); viewMap.classList.add('hidden');
-    viewHome.classList.remove('hidden'); viewHome.classList.add('active');
-}
-
-function resetMap() {
-    // 画面中央にリセット
-    mapState = { scale: 1, x: 0, y: 0 };
-    updateMapTransform();
-}
-
-// 座標とスケールを適用しつつ、画面外に行き過ぎないように制限する
-function updateMapTransform() {
-    if(!mapContent || !viewMap) return;
-
-    // 1. スケール制限 (0.5倍 〜 5.0倍)
-    mapState.scale = Math.min(Math.max(mapState.scale, 0.5), 5.0);
-
-    // 2. 移動範囲の制限 (バウンダリーチェック)
-    // 現在の表示領域のサイズ
-    const viewportW = viewMap.clientWidth;
-    const viewportH = viewMap.clientHeight;
+    // 画像の中央を画面の中央に
+    mapState.scale = 0.8; // 初期は少し引きで
+    mapState.x = (cw - iw * mapState.scale) / 2;
+    mapState.y = (ch - ih * mapState.scale) / 2;
     
-    // 地図の現在の見かけのサイズ
-    // ※ mapContent自体はサイズを持たず、中のimg等がサイズを持つ想定
-    //   簡単な方法として、1000x1000の画像と仮定するか、getBoundingClientRectを使う
-    const rect = mapContent.getBoundingClientRect();
-    const currentW = rect.width; // scale適用後の幅
-    const currentH = rect.height;
+    updateTransform();
+}
 
-    // 画面の半分くらいまでは余白を許す（完全にロックすると使いにくい場合があるため）
-    const limitX = (currentW * 0.8) / 2;
-    const limitY = (currentH * 0.8) / 2;
-
-    // 中心からのズレを制限
-    // ※ 厳密な境界計算は複雑になるため、簡易的に「画面から消え失せない」レベルに制限
-    if (mapState.x > limitX) mapState.x = limitX;
-    if (mapState.x < -limitX) mapState.x = -limitX;
-    if (mapState.y > limitY) mapState.y = limitY;
-    if (mapState.y < -limitY) mapState.y = -limitY;
-
-    // 適用
+function updateTransform() {
+    if(!mapContent) return;
     mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
 }
 
-function initMapControls() {
-    const mapWrapper = document.getElementById('map-wrapper');
-    const zoomIn = document.getElementById('zoom-in');
-    const zoomOut = document.getElementById('zoom-out');
-    const zoomReset = document.getElementById('zoom-reset');
+// 検索実行
+function executeMapSearch() {
+    const input = document.getElementById('map-search-input');
+    const query = input.value.trim();
+    if (query) {
+        // 地図を閉じて検索結果画面へ
+        viewMap.classList.remove('active'); viewMap.classList.add('hidden');
+        // 既存の検索関数を呼び出す
+        goToResults(query);
+        // 入力欄をクリアするかはお好みで
+        // input.value = '';
+    }
+}
 
-    if(!mapWrapper || !mapContent) return;
+function initMapLogic() {
+    if(!mapContainer) return;
 
-    // --- ボタン操作 ---
-    if(zoomIn) zoomIn.addEventListener('click', () => {
-        mapState.scale += 0.5;
-        updateMapTransform();
+    // --- 1. ヘッダー操作 ---
+    const closeBtn = document.getElementById('map-close-btn');
+    if(closeBtn) closeBtn.addEventListener('click', () => {
+        viewMap.classList.remove('active'); viewMap.classList.add('hidden');
+        viewHome.classList.remove('hidden'); viewHome.classList.add('active');
     });
-    if(zoomOut) zoomOut.addEventListener('click', () => {
-        mapState.scale -= 0.5;
-        updateMapTransform();
-    });
-    if(zoomReset) zoomReset.addEventListener('click', resetMap);
+
+    const searchSubmit = document.getElementById('map-search-submit');
+    const searchInput = document.getElementById('map-search-input');
+    
+    if(searchSubmit) searchSubmit.addEventListener('click', executeMapSearch);
+    if(searchInput) {
+        searchInput.addEventListener('keydown', (e) => {
+            if(e.key === 'Enter') executeMapSearch();
+        });
+        // 入力中は地図操作イベントを止める
+        searchInput.addEventListener('touchstart', (e) => e.stopPropagation());
+        searchInput.addEventListener('touchmove', (e) => e.stopPropagation());
+    }
 
 
-    // --- タッチ & マウス操作 (ピンチズーム対応) ---
-    let isDragging = false;
-    let startX = 0, startY = 0;
-    let initialX = 0, initialY = 0;
+    // --- 2. 地図操作 (Pointer Events) ---
+    // マウス・タッチ両対応のための変数
+    let pointers = []; // 現在触れている指のリスト
+    let lastCenter = null;
+    let lastDist = 0;
 
-    // ピンチズーム用変数
-    let initialDistance = 0;
-    let initialScale = 1;
-
-    // 2点間の距離を計算する関数
-    const getDistance = (touches) => {
-        const dx = touches[0].clientX - touches[1].clientX;
-        const dy = touches[0].clientY - touches[1].clientY;
-        return Math.hypot(dx, dy);
+    // 座標取得ヘルパー
+    const getPointerCenter = (ptrList) => {
+        let x = 0, y = 0;
+        ptrList.forEach(p => { x += p.clientX; y += p.clientY; });
+        return { x: x / ptrList.length, y: y / ptrList.length };
     };
 
-    const onPointerDown = (e) => {
-        if(e.target.closest('.map-controls')) return;
+    const getPointerDist = (p1, p2) => {
+        return Math.hypot(p1.clientX - p2.clientX, p1.clientY - p2.clientY);
+    };
+
+    mapContainer.addEventListener('pointerdown', (e) => {
+        mapContainer.setPointerCapture(e.pointerId);
+        pointers.push(e);
         
-        // タッチイベントかつ2本指の場合 -> ピンチ開始
-        if (e.touches && e.touches.length === 2) {
-            isDragging = false; // ドラッグは中断
-            initialDistance = getDistance(e.touches);
-            initialScale = mapState.scale;
-            return;
+        lastCenter = getPointerCenter(pointers);
+        if (pointers.length === 2) {
+            lastDist = getPointerDist(pointers[0], pointers[1]);
         }
+        mapState.isDragging = true;
+        mapContent.style.transition = 'none'; // 操作中はアニメーションなし
+    });
 
-        // 1本指 または マウス -> ドラッグ開始
-        isDragging = true;
-        mapContent.style.transition = 'none'; // 操作中はアニメーションOFF
+    mapContainer.addEventListener('pointermove', (e) => {
+        if (!mapState.isDragging || pointers.length === 0) return;
 
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        // 指情報の更新
+        const index = pointers.findIndex(p => p.pointerId === e.pointerId);
+        if (index !== -1) pointers[index] = e;
 
-        startX = clientX;
-        startY = clientY;
-        initialX = mapState.x;
-        initialY = mapState.y;
-    };
+        const currentCenter = getPointerCenter(pointers);
+        const dx = currentCenter.x - lastCenter.x;
+        const dy = currentCenter.y - lastCenter.y;
 
-    const onPointerMove = (e) => {
-        // ピンチ操作中 (2本指)
-        if (e.touches && e.touches.length === 2) {
-            const currentDistance = getDistance(e.touches);
-            if (initialDistance > 0) {
-                const diff = currentDistance / initialDistance;
-                mapState.scale = initialScale * diff;
-                updateMapTransform();
+        // --- 移動 (Pan) ---
+        mapState.x += dx;
+        mapState.y += dy;
+
+        // --- 拡大縮小 (Pinch) ---
+        if (pointers.length === 2) {
+            const currentDist = getPointerDist(pointers[0], pointers[1]);
+            if (lastDist > 0) {
+                const scaleDiff = currentDist / lastDist;
+                
+                // ズーム中心を考慮した補正
+                // (現在のスケールでの中心点) - (移動量)
+                const oldScale = mapState.scale;
+                let newScale = oldScale * scaleDiff;
+                
+                // 制限
+                newScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+                
+                // 中心基準でズームするための位置補正
+                // (ポインタ位置 - 画像位置) * (スケール変化分) を引く
+                const pointerOnImageX = (currentCenter.x - mapState.x);
+                const pointerOnImageY = (currentCenter.y - mapState.y);
+                
+                // 単純化のため、中心ズームに近い挙動にする（厳密なGoogleMap計算は複雑なため）
+                // ズームした分だけ位置をずらして、ポインタ位置を維持しようとする
+                mapState.x -= pointerOnImageX * (newScale / oldScale - 1);
+                mapState.y -= pointerOnImageY * (newScale / oldScale - 1);
+
+                mapState.scale = newScale;
+                lastDist = currentDist;
             }
-            return;
         }
 
-        // ドラッグ操作中
-        if (!isDragging) return;
-        if (e.cancelable) e.preventDefault(); // スクロール防止
+        lastCenter = currentCenter;
+        updateTransform();
+    });
 
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const endDrag = (e) => {
+        const index = pointers.findIndex(p => p.pointerId === e.pointerId);
+        if (index !== -1) pointers.splice(index, 1);
 
-        const dx = clientX - startX;
-        const dy = clientY - startY;
-
-        mapState.x = initialX + dx;
-        mapState.y = initialY + dy;
-        
-        // ドラッグ中はあえて updateMapTransform を呼ばず、
-        // 直接 style をいじることで、バウンダリー制限の「引っかかり」をなくし、
-        // 指を離したときに updateMapTransform で位置補正するのも自然ですが、
-        // 今回はシンプルに常時更新します。
-        mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
+        if (pointers.length === 0) {
+            mapState.isDragging = false;
+            
+            // バウンダリーチェック（画面外に行き過ぎたら戻す）
+            checkBoundaries();
+        } else if (pointers.length === 1) {
+            // 2本指→1本指になったとき、残った指を基準に再設定
+            lastCenter = getPointerCenter(pointers);
+            lastDist = 0;
+        }
     };
 
-    const onPointerUp = (e) => {
-        isDragging = false;
-        // 指を離したタイミングで境界チェック＆アニメーション復帰
-        mapContent.style.transition = 'transform 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1)';
-        updateMapTransform();
+    mapContainer.addEventListener('pointerup', endDrag);
+    mapContainer.addEventListener('pointercancel', endDrag);
+    mapContainer.addEventListener('pointerleave', endDrag);
+    
+    // PC用ホイールズーム
+    mapContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const scaleDiff = e.deltaY > 0 ? 0.9 : 1.1;
+        const oldScale = mapState.scale;
+        let newScale = oldScale * scaleDiff;
+        newScale = Math.min(Math.max(newScale, MIN_SCALE), MAX_SCALE);
+
+        // マウス位置を中心にズーム
+        const rect = mapContainer.getBoundingClientRect();
+        const pointerX = e.clientX - rect.left;
+        const pointerY = e.clientY - rect.top;
         
-        // 遷移設定は少し経ったら消す（次のドラッグのため）
-        setTimeout(() => {
-            mapContent.style.transition = '';
-        }, 200);
-    };
+        const pointerOnImageX = pointerX - mapState.x;
+        const pointerOnImageY = pointerY - mapState.y;
 
-    // イベント登録
-    mapWrapper.addEventListener('mousedown', onPointerDown);
-    mapWrapper.addEventListener('touchstart', onPointerDown, { passive: false });
+        mapState.x -= pointerOnImageX * (newScale / oldScale - 1);
+        mapState.y -= pointerOnImageY * (newScale / oldScale - 1);
+        
+        mapState.scale = newScale;
+        updateTransform();
+        
+        // ホイール操作が終わったらバウンダリーチェック（デバウンスが必要だが簡易的に）
+        clearTimeout(window.wheelTimer);
+        window.wheelTimer = setTimeout(checkBoundaries, 300);
+    }, { passive: false });
+}
 
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('touchmove', onPointerMove, { passive: false });
+function checkBoundaries() {
+    // 画面からはみ出しすぎないように戻すアニメーション
+    if(!mapContainer || !mapImage) return;
+    
+    const containerW = mapContainer.clientWidth;
+    const containerH = mapContainer.clientHeight;
+    
+    // 現在の画像サイズ
+    const currentW = (mapImage.naturalWidth || 1000) * mapState.scale;
+    const currentH = (mapImage.naturalHeight || 1000) * mapState.scale;
 
-    window.addEventListener('mouseup', onPointerUp);
-    window.addEventListener('touchend', onPointerUp);
+    // 許容する余白（画面の半分くらいは外に出てもいい）
+    const marginX = containerW * 0.8;
+    const marginY = containerH * 0.8;
+
+    let nextX = mapState.x;
+    let nextY = mapState.y;
+
+    // 右に行き過ぎ（左側に余白ができすぎ）
+    if (nextX > marginX) nextX = marginX;
+    // 左に行き過ぎ
+    if (nextX + currentW < containerW - marginX) nextX = containerW - marginX - currentW;
+
+    if (nextY > marginY) nextY = marginY;
+    if (nextY + currentH < containerH - marginY) nextY = containerH - marginY - currentH;
+    
+    // 位置補正が必要ならアニメーションで戻す
+    if (nextX !== mapState.x || nextY !== mapState.y) {
+        mapState.x = nextX;
+        mapState.y = nextY;
+        mapContent.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        updateTransform();
+    }
 }

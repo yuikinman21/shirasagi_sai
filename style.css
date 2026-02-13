@@ -385,101 +385,132 @@ body {
     opacity: 1 !important;
 }
 
-/* style.css の末尾に追加・修正 */
+/* --- 地図画面スタイル (刷新版) --- */
 
-/* --- 地図ボタン (FAB) のデザイン変更 --- */
-.map-fab-btn {
-    position: absolute; 
-    bottom: -15px;
-    right: -110px;
-    width: 56px;
-    height: 56px;
-    
-    /* ▼▼▼ 変更: 背景を白、アイコンを青に ▼▼▼ */
-    background: #ffffff;
-    color: var(--primary);
-    border: 1px solid #e0e0e0; /* 薄い枠線を追加 */
-    
-    border-radius: 50%;
-    font-size: 26px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* 影も少し控えめに */
-    cursor: pointer;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s ease;
-}
-
-/* ▼▼▼ 追加: ホバー時の効果 ▼▼▼ */
-.map-fab-btn:hover {
-    background: #f5f7fa; /* 薄いグレー */
-    transform: scale(1.05); /* 少し大きく */
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
-}
-
-.map-fab-btn:active {
-    transform: scale(0.95);
-    background: #eef2f6;
-}
-
-
-/* --- 地図画面のコントローラー配置変更 --- */
-
-/* 拡大縮小ボタンのコンテナを右下に縦並び配置 */
-.map-controls {
+/* 地図ビュー全体 */
+#view-map {
     position: fixed;
-    /* 位置変更: 右下 */
-    bottom: 30px; 
-    right: 20px;
-    left: auto; /* 中央揃え解除 */
-    transform: none; /* 中央揃え解除 */
-    
-    /* 縦並びにする */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #f0f2f5;
+    z-index: 2000; /* 最前面 */
     display: flex;
-    flex-direction: column; 
-    gap: 12px;
-    
-    z-index: 10;
-    background: rgba(255,255,255,0.9);
-    padding: 8px; /* パディングを少し小さく */
-    border-radius: 16px; /* 角丸調整 */
-    backdrop-filter: blur(4px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-
-    touch-action: none;
+    flex-direction: column;
+    overflow: hidden; /* スクロール禁止 */
+    touch-action: none; /* ブラウザ標準のタッチ操作を無効化 */
 }
 
-/* キャンパス選択プルダウン */
-.map-header-select {
+/* --- 固定ヘッダー --- */
+.map-header {
+    position: absolute; /* 地図の上に浮く */
+    top: 0; left: 0; width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 10;
+    padding: 10px 16px;
+    padding-top: max(10px, env(safe-area-inset-top)); /* iPhoneのノッチ対応 */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ヘッダー上段（キャンパス選択 + 閉じる） */
+.map-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.map-select {
     font-size: 14px;
-    padding: 6px 12px;
+    font-weight: bold;
+    padding: 6px 24px 6px 12px;
     border-radius: 20px;
     border: 1px solid #ddd;
-    background: #f9f9f9;
+    background: #fff;
     color: var(--text-main);
-    font-weight: bold;
     outline: none;
-    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0 L5 6 L10 0 Z' fill='%23666' /></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
 }
 
-/* ヘッダー右上の検索ボタン */
-.map-header-btn {
-    background: none;
+.map-close-btn {
+    background: #eee;
     border: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
     font-size: 20px;
+    color: #666;
+    display: flex; align-items: center; justify-content: center;
     cursor: pointer;
-    color: var(--primary);
-    padding: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
-.view-all-wrapper {
-    position: relative;       /* ボタン位置の基準点にする */
-    display: inline-block;    /* 中身（ボタン）の幅に合わせる */
-    margin-top: 20px;         /* 上との間隔 */
+/* ヘッダー下段（検索バー） */
+.map-search-bar {
+    display: flex;
+    gap: 8px;
+}
+
+#map-search-input {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 24px;
+    border: 1px solid #ddd;
+    background: #f9f9f9;
+    font-size: 15px; /* スマホでズームされないサイズ */
+    outline: none;
+}
+#map-search-input:focus {
+    background: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0, 86, 179, 0.1);
+}
+
+#map-search-submit {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 40px; height: 40px;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* --- 地図コンテナ --- */
+.map-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background-image: radial-gradient(#ddd 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-color: #f0f2f5;
+    cursor: grab;
+}
+.map-container:active {
+    cursor: grabbing;
+}
+
+.map-content {
+    position: absolute;
+    top: 0; left: 0;
+    transform-origin: 0 0; /* 左上を基準に変形 */
+    will-change: transform;
+}
+
+.map-image {
+    display: block;
+    max-width: none; /* 親要素の幅に制限されない */
+    pointer-events: none; /* 画像自体のドラッグ防止 */
+    user-select: none;
 }
 
 
