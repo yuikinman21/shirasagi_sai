@@ -451,52 +451,14 @@ body {
 
 /* ヘッダー下段（検索バー） */
 .map-search-bar {
-    display: flex;
-    gap: 8px;
+    position: relative; /* ボタンを絶対配置するための基準 */
+    width: 100%;
 }
 
 #map-search-input {
-    flex: 1;
-    padding: 10px 16px;
-    border-radius: 24px;
-    border: 1px solid #ddd;
-    background: #f9f9f9;
-    font-size: 15px; /* スマホでズームされないサイズ */
-    outline: none;
-}
-#map-search-input:focus {
-    background: #fff;
-    border-color: var(--primary);
-    box-shadow: 0 2px 8px rgba(0, 86, 179, 0.1);
-}
+    width: 100%;
+    box-sizing: border-box;
 
-#map-search-submit {
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    
-    /* 丸(50%)からカプセル型(20px)に変更 */
-    border-radius: 20px;
-    
-    /* 横幅の固定を解除し、余白で広げる */
-    width: auto; 
-    height: 40px; /* 高さは揃える */
-    padding: 0 20px; /* 横に少し広げる */
-    
-    font-size: 14px;
-    font-weight: bold; /* 文字を太く */
-    
-    cursor: pointer;
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    transition: opacity 0.2s;
-}
-
-#map-search-submit:active {
-    opacity: 0.8;
 }
 
 /* --- 地図コンテナ --- */
