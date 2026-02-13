@@ -428,9 +428,9 @@ body {
 
 /* 拡大縮小ボタンのコンテナを右下に縦並び配置 */
 .map-controls {
-    position: absolute;
+    position: fixed;
     /* 位置変更: 右下 */
-    bottom: 40px; 
+    bottom: 30px; 
     right: 20px;
     left: auto; /* 中央揃え解除 */
     transform: none; /* 中央揃え解除 */
@@ -446,6 +446,8 @@ body {
     border-radius: 16px; /* 角丸調整 */
     backdrop-filter: blur(4px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+
+    touch-action: none;
 }
 
 /* キャンパス選択プルダウン */
