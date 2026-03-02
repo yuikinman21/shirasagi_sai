@@ -27,7 +27,7 @@ body {
     min-height: 100vh; min-height: 100dvh;
     position: absolute; top: 0; left: 0;
     background: var(--bg-body);
-    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.35, 0, 0.15, 1), visibility 0.4s, height 0s linear 0.4s;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s, height 0s linear 0.4s;
 }
 .view-container.hidden { opacity: 0; visibility: hidden; pointer-events: none; transform: scale(0.98); height: 0; overflow: hidden; }
 .view-container.active { opacity: 1; visibility: visible; pointer-events: auto; transform: scale(1) translateX(0); z-index: 10; }
