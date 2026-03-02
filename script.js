@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
     loadFavorites();
     setupEventListeners();
+    setupSwipeListener();
     // 画面ロード時にタグのあふれチェックを実行
     checkTagOverflow();
 });
@@ -38,6 +39,10 @@ let termsData = [];
 let selectedTags = new Set(); 
 let currentQuery = '';
 let favoriteIds = [];
+
+// --- スワイプ管理 ---
+let touchStartX = 0;
+let touchStartY = 0;
 
 // --- 1. 初期化 ---
 async function init() {
@@ -271,6 +276,48 @@ function goToHome() {
     renderHomeFavorites();
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewHome.classList.remove('hidden'); viewHome.classList.add('active');
+}
+
+// --- スワイプジェスチャーのセットアップ ---
+function setupSwipeListener() {
+    // スマートフォンのみ有効にする
+    const isSmartphone = window.matchMedia('(max-width: 767px)').matches;
+    if (!isSmartphone) return;
+
+    document.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, false);
+
+    document.addEventListener('touchend', (e) => {
+        // モーダルが開いている場合はスワイプをスキップ
+        if (modalOverlay.classList.contains('active') || contactOverlay.classList.contains('active')) {
+            return;
+        }
+
+        // 検索結果画面でのみスワイプを有効にする
+        if (!viewResults.classList.contains('active')) {
+            return;
+        }
+
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        
+        // スワイプ距離が小さすぎる場合はスキップ（50px以上）
+        const swipeThreshold = 50;
+        if (Math.abs(deltaX) < swipeThreshold) return;
+        
+        // 縦方向のスワイプの場合はスキップ（横への移動が縦への移動より大きいことを確認）
+        if (Math.abs(deltaY) > Math.abs(deltaX)) return;
+        
+        // 左から右へのスワイプの場合、トップ画面に戻る
+        if (deltaX > 0) {
+            goToHome();
+        }
+    }, false);
 }
 
 // --- 4. 描画ロジック ---
