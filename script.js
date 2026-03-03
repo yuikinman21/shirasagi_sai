@@ -827,7 +827,10 @@ function renderMapPins() {
         if (item.map_x != null && item.map_y != null) {
             const pin = document.createElement('div');
             pin.className = 'map-pin';
-            
+
+            pin.dataset.termId = item.id;
+            pin.dataset.termName = item.term;
+                        
             // パーセント指定で配置
             pin.style.left = `${item.map_x}%`;
             pin.style.top = `${item.map_y}%`;
@@ -848,4 +851,56 @@ function renderMapPins() {
             mapContent.appendChild(pin);
         }
     });
+}
+
+// --- 地図の拡大縮小時にピンのサイズを再計算する処理を updateTransform に追加 ---
+function updateTransform() {
+    if(!mapContent) return;
+    mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
+
+    // ▼ 追加: ピンの大きさを一定に保つ逆スケール計算 ▼
+    const inverseScale = 1 / mapState.scale;
+    document.querySelectorAll('.map-pin').forEach(pin => {
+        // ハイライトされているピン（スケールアニメーション中など）でなければ一律で逆スケールを当てる
+        if(!pin.classList.contains('highlighted-pin')){
+            pin.style.transform = `scale(${inverseScale})`;
+        }
+    });
+}
+
+// --- 検索実行時、一致するピンがあればハイライトさせる処理 ---
+function executeMapSearch() {
+    const input = document.getElementById('map-search-input');
+    const query = input.value.trim();
+    if (query) {
+        // 地図上のピンを探す
+        let foundPin = false;
+        document.querySelectorAll('.map-pin').forEach(pin => {
+            const termName = pin.dataset.termName || '';
+            if(termName.includes(query)){
+                // クエリが含まれるピンを目立たせる（アニメーションクラス付与など）
+                pin.classList.add('highlighted-pin');
+                
+                // 逆スケールより少し大きめに表示するなど工夫
+                const inverseScale = 1 / mapState.scale;
+                pin.style.transform = `scale(${inverseScale * 1.5})`; 
+                pin.style.filter = "drop-shadow(0px 0px 10px rgba(240,77,55,0.8))"; // 光らせる
+                
+                foundPin = true;
+            } else {
+                // 関係ないピンは元に戻すか薄くする
+                pin.classList.remove('highlighted-pin');
+                pin.style.opacity = "0.3";
+                const inverseScale = 1 / mapState.scale;
+                pin.style.transform = `scale(${inverseScale})`; 
+                pin.style.filter = "none";
+            }
+        });
+        
+        // もしピンが見つからなければ、通常通り一覧の検索結果へ飛ぶ
+        if(!foundPin){
+             viewMap.classList.remove('active'); viewMap.classList.add('hidden');
+             goToResults(query);
+        }
+    }
 }
