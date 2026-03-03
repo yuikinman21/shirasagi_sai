@@ -495,6 +495,10 @@ const viewMap = document.getElementById('view-map');
 const mapContainer = document.getElementById('map-container');
 const mapContent = document.getElementById('map-content');
 const mapImage = document.getElementById('map-image');
+const mapPopup = document.getElementById('map-popup');
+const mapPopupTerm = document.getElementById('map-popup-term');
+const mapPopupSearchBtn = document.getElementById('map-popup-search-btn');
+const mapPopupCloseBtn = document.getElementById('map-popup-close-btn');
 
 // 状態管理
 let mapState = {
@@ -532,6 +536,7 @@ function centerMap() {
     mapState.y = (ch - ih * mapState.scale) / 2;
     
     updateTransform();
+    renderMapPins();
 }
 
 function updateTransform() {
@@ -777,4 +782,62 @@ function checkBoundaries() {
         mapContent.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
         updateTransform();
     }
+}
+
+// ポップアップを閉じる処理
+if (mapPopupCloseBtn) {
+    mapPopupCloseBtn.addEventListener('click', () => {
+        mapPopup.classList.add('hidden');
+    });
+}
+
+// ポップアップを表示する関数
+function showMapPopup(item) {
+    if(!mapPopup) return;
+    mapPopupTerm.textContent = item.term;
+    
+    // 検索結果を見るボタンの動作
+    mapPopupSearchBtn.onclick = () => {
+        mapPopup.classList.add('hidden'); // ポップアップを閉じる
+        
+        // 地図を閉じて検索結果画面へ遷移
+        const closeMapBtn = document.getElementById('map-close-btn');
+        if (closeMapBtn) closeMapBtn.click();
+        
+        goToResults(item.term); // 用語で検索実行
+    };
+    
+    mapPopup.classList.remove('hidden');
+}
+
+// マップ上にピンを描画する関数
+function renderMapPins() {
+    if (!mapContent) return;
+
+    // 既存のピンを一旦すべて削除（初期化）
+    document.querySelectorAll('.map-pin').forEach(p => p.remove());
+
+    termsData.forEach(item => {
+        if (item.map_x != null && item.map_y != null) {
+            const pin = document.createElement('div');
+            pin.className = 'map-pin';
+            
+            // パーセント指定で配置
+            pin.style.left = `${item.map_x}%`;
+            pin.style.top = `${item.map_y}%`;
+            
+            // 地図のドラッグ操作（pointerdown）をピン上でキャンセルする
+            pin.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+            });
+
+            // クリック時のポップアップ表示
+            pin.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showMapPopup(item);
+            });
+
+            mapContent.appendChild(pin);
+        }
+    });
 }

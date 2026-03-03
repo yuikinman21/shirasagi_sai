@@ -569,6 +569,63 @@ body {
     transform: scale(0.98);
 }
 
+
+/* --- マップ上のピン --- */
+.map-pin {
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #e74c3c; /* 赤いピン */
+    border-radius: 50% 50% 50% 0; /* ドロップ型にする */
+    transform: translate(-50%, -100%) rotate(-45deg); /* 先端を座標の中心に合わせる */
+    box-shadow: -2px 2px 4px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 50;
+    transition: transform 0.2s;
+}
+.map-pin:active {
+    transform: translate(-50%, -100%) rotate(-45deg) scale(0.9);
+}
+
+/* --- 下部ポップアップ --- */
+.map-popup {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    width: 85%;
+    max-width: 400px;
+    text-align: center;
+    transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.map-popup.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(150%); /* 下に隠す */
+}
+.map-popup-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #f0f2f5;
+    border: none;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text-sub);
+}
+#map-popup-term {
+    margin: 0 0 16px 0;
+    font-size: 18px;
+    color: var(--text-main);
+}
+
 /* チップ */
 .chip { padding: 6px 14px; border-radius: 6px; font-size: 13px; border: 1px solid #eee; background: var(--white); color: var(--text-sub); white-space: nowrap; cursor: pointer; transition: 0.2s; user-select: none; flex-shrink: 0; font-family: inherit; line-height: inherit; appearance: none; }
 .chip.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 6px rgba(0, 86, 179, 0.2); }
