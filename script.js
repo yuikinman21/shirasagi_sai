@@ -539,28 +539,28 @@ function centerMap() {
     renderMapPins();
 }
 
-function updateTransform() {
-    if(!mapContent) return;
-    mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
-    const inverseScale = 1 / mapState.scale;
-    document.querySelectorAll('.map-pin').forEach(pin => {
-        pin.style.transform = `scale(${inverseScale})`;
-    });
-}
+// function updateTransform() {
+//     if(!mapContent) return;
+//     mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
+//     const inverseScale = 1 / mapState.scale;
+//     document.querySelectorAll('.map-pin').forEach(pin => {
+//         pin.style.transform = `scale(${inverseScale})`;
+//     });
+// }
 
 // 検索実行
-function executeMapSearch() {
-    const input = document.getElementById('map-search-input');
-    const query = input.value.trim();
-    if (query) {
-        // 地図を閉じて検索結果画面へ
-        viewMap.classList.remove('active'); viewMap.classList.add('hidden');
-        // 既存の検索関数を呼び出す
-        goToResults(query);
-        // 入力欄をクリアするかはお好みで
-        // input.value = '';
-    }
-}
+// function executeMapSearch() {
+//     const input = document.getElementById('map-search-input');
+//     const query = input.value.trim();
+//     if (query) {
+//         // 地図を閉じて検索結果画面へ
+//         viewMap.classList.remove('active'); viewMap.classList.add('hidden');
+//         // 既存の検索関数を呼び出す
+//         goToResults(query);
+//         // 入力欄をクリアするかはお好みで
+//         // input.value = '';
+//     }
+// }
 
 // --- script.js の initMapLogic 関数を丸ごと書き換え ---
 
@@ -835,6 +835,8 @@ function renderMapPins() {
             pin.style.left = `${item.map_x}%`;
             pin.style.top = `${item.map_y}%`;
 
+            pin.style.zIndex = Math.round(item.map_y) + 50;
+
             pin.style.transform = `scale(${inverseScale})`;
             
             // 地図のドラッグ操作（pointerdown）をピン上でキャンセルする
@@ -873,31 +875,29 @@ function executeMapSearch() {
     const input = document.getElementById('map-search-input');
     const query = input.value.trim();
     if (query) {
-        // 地図上のピンを探す
         let foundPin = false;
         document.querySelectorAll('.map-pin').forEach(pin => {
             const termName = pin.dataset.termName || '';
             if(termName.includes(query)){
-                // クエリが含まれるピンを目立たせる（アニメーションクラス付与など）
                 pin.classList.add('highlighted-pin');
                 
-                // 逆スケールより少し大きめに表示するなど工夫
                 const inverseScale = 1 / mapState.scale;
                 pin.style.transform = `scale(${inverseScale * 1.5})`; 
-                pin.style.filter = "drop-shadow(0px 0px 10px rgba(240,77,55,0.8))"; // 光らせる
+                pin.style.filter = "drop-shadow(0px 0px 10px rgba(240,77,55,0.8))";
+                pin.style.zIndex = 999;
                 
                 foundPin = true;
             } else {
-                // 関係ないピンは元に戻すか薄くする
                 pin.classList.remove('highlighted-pin');
                 pin.style.opacity = "0.3";
                 const inverseScale = 1 / mapState.scale;
                 pin.style.transform = `scale(${inverseScale})`; 
                 pin.style.filter = "none";
+                const originalY = parseFloat(pin.style.top) || 0;
+                pin.style.zIndex = Math.round(originalY) + 50;
             }
         });
         
-        // もしピンが見つからなければ、通常通り一覧の検索結果へ飛ぶ
         if(!foundPin){
              viewMap.classList.remove('active'); viewMap.classList.add('hidden');
              goToResults(query);
