@@ -61,16 +61,15 @@ async function loadSheetAsTerms(noCache = true) {
                 tags: Array.from(new Set(tags)),
                 description: (row.description || '').trim(),
                 image: (row.image || '').trim(),
-                updated: updatedFieldKey ? (row[updatedFieldKey] || '').trim() : '',
-                map_x: row.map_x ? parseFloat(row.map_x) : null,
-                map_y: row.map_y ? parseFloat(row.map_y) : null
+                // K列があれば updated プロパティとして保持する（Apps Script でタイムスタンプを書き込む想定）
+                updated: updatedFieldKey ? (row[updatedFieldKey] || '').trim() : ''
             };
         }).filter(item => item.term); // 用語が必須
 
         // 最低限の重複 id 対策: 重複があれば連番に差し替える
         const seen = new Set();
         mapped.forEach((it, i) => {
-            // idが不正または既に存在する場合に未使用の連番を割り当てる
+           // idが不正または既に存在する場合に未使用の連番を割り当てる
             if (!it.id || seen.has(it.id)) {
                 let candidate = 1;
                 while (seen.has(candidate)) {
