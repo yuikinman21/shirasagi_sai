@@ -573,18 +573,29 @@ body {
 /* --- マップ上のピン --- */
 .map-pin {
     position: absolute;
-    width: 24px;
-    height: 24px;
-    background-color: #e74c3c; /* 赤いピン */
-    border-radius: 50% 50% 50% 0; /* ドロップ型にする */
-    transform: translate(-50%, -100%) rotate(-45deg); /* 先端を座標の中心に合わせる */
-    box-shadow: -2px 2px 4px rgba(0,0,0,0.3);
+    width: 28px;
+    height: 42px;
+    /* ピンの先端（下部中央）を正確な座標に合わせるためのネガティブマージン */
+    margin-left: -14px; /* 横幅の半分を左へ */
+    margin-top: -42px;  /* 縦幅の全量を上へ */
+    
+    /* 添付画像に近いデザインのSVG */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36"><path fill="%23F04D37" d="M12 0C5.373 0 0 5.373 0 12c0 8.25 12 24 12 24s12-15.75 12-24C24 5.373 18.627 0 12 0zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"/></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    
+    /* 拡大縮小の基準点を「ピンの先端」に固定（これがないとズーム時にピンがズレます） */
+    transform-origin: center bottom; 
+    
     cursor: pointer;
     z-index: 50;
-    transition: transform 0.2s;
+    filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.25)); /* 影をつけて浮き上がらせる */
+    will-change: transform; /* アニメーション最適化 */
 }
+
 .map-pin:active {
-    transform: translate(-50%, -100%) rotate(-45deg) scale(0.9);
+    filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
 }
 
 /* --- 下部ポップアップ --- */

@@ -542,6 +542,10 @@ function centerMap() {
 function updateTransform() {
     if(!mapContent) return;
     mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
+    const inverseScale = 1 / mapState.scale;
+    document.querySelectorAll('.map-pin').forEach(pin => {
+        pin.style.transform = `scale(${inverseScale})`;
+    });
 }
 
 // 検索実行
@@ -817,6 +821,8 @@ function renderMapPins() {
     // 既存のピンを一旦すべて削除（初期化）
     document.querySelectorAll('.map-pin').forEach(p => p.remove());
 
+    const inverseScale = 1 / mapState.scale;
+
     termsData.forEach(item => {
         if (item.map_x != null && item.map_y != null) {
             const pin = document.createElement('div');
@@ -825,6 +831,8 @@ function renderMapPins() {
             // パーセント指定で配置
             pin.style.left = `${item.map_x}%`;
             pin.style.top = `${item.map_y}%`;
+
+            pin.style.transform = `scale(${inverseScale})`;
             
             // 地図のドラッグ操作（pointerdown）をピン上でキャンセルする
             pin.addEventListener('pointerdown', (e) => {
