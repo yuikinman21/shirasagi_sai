@@ -912,40 +912,78 @@ function updateTransform() {
     });
 }
 
-// --- 検索実行時、一致するピンがあればハイライトさせる処理 ---
+// --- 検索実行時、一致するピンがあればハイライト＆移動させる処理 ---
 function executeMapSearch() {
     const input = document.getElementById('map-search-input');
     const query = input.value.trim();
+    
     if (query) {
         let foundPin = false;
+        let targetPin = null; 
+
         document.querySelectorAll('.map-pin').forEach(pin => {
             const termName = pin.dataset.termName || '';
             if(termName.includes(query)){
                 // 検索に一致したピンをハイライト
                 pin.classList.add('highlighted-pin');
                 pin.style.opacity = "1";
-                
-                const inverseScale = 1 / mapState.scale;
-                // 🌟 ハイライトピン
-                pin.style.transform = `scale(${inverseScale * 0.75})`;
                 pin.style.filter = "drop-shadow(0px 0px 15px rgba(0, 86, 179, 0.8))";
                 pin.style.zIndex = 999;
                 
                 foundPin = true;
+                if(!targetPin) targetPin = pin; // 最初に見つかったピンを記録する
             } else {
-                // 一致しないピンはハイライト解除
+                // 一致しないピンはハイライト解除して目立たなくする
                 pin.classList.remove('highlighted-pin');
                 pin.style.opacity = "0.4"; 
-                const inverseScale = 1 / mapState.scale;
-                // 🌟 通常のピン
-                pin.style.transform = `scale(${inverseScale * 0.5})`; 
                 pin.style.filter = "none";
                 const originalY = parseFloat(pin.style.top) || 0;
                 pin.style.zIndex = Math.round(originalY) + 50;
             }
         });
         
-        if(!foundPin){
+        if(foundPin && targetPin) {
+            // 見つかったピンの位置へカメラを移動（パン）してズームする
+            const mapContainer = document.getElementById('map-container');
+            const mapImage = document.getElementById('map-image');
+            const mapContent = document.getElementById('map-content');
+            
+            if(mapContainer && mapImage && mapContent) {
+                const cw = mapContainer.clientWidth;
+                const ch = mapContainer.clientHeight;
+                const iw = mapImage.naturalWidth || 1000;
+                const ih = mapImage.naturalHeight || 1000;
+                
+                const px = parseFloat(targetPin.style.left) / 100;
+                const py = parseFloat(targetPin.style.top) / 100;
+                
+                // ズームインさせる
+                mapState.scale = 0.8;
+                
+                // 画面中央にピンが来るように計算
+                mapState.x = (cw / 2) - (iw * px * mapState.scale);
+                mapState.y = (ch / 2) - (ih * py * mapState.scale);
+                
+                // アニメーションを有効にして滑らかに移動させる
+                mapContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                
+                updateTransform(); 
+                
+                // 移動が終わったら transition を元に戻す
+                setTimeout(() => {
+                    mapContent.style.transition = 'none';
+                }, 400);
+            }
+
+            // 👇【追加】カメラ移動と同時にポップアップも表示する
+            const termId = parseInt(targetPin.dataset.termId, 10);
+            const targetItem = termsData.find(item => item.id === termId);
+            if(targetItem) {
+                showMapPopup(targetItem);
+            }
+
+        } else if(!foundPin) {
+             // 検索結果にない場合はマップを閉じて通常のリスト検索画面へ
              viewMap.classList.remove('active'); viewMap.classList.add('hidden');
              goToResults(query);
         }
@@ -954,12 +992,10 @@ function executeMapSearch() {
         document.querySelectorAll('.map-pin').forEach(pin => {
             pin.classList.remove('highlighted-pin');
             pin.style.opacity = "1";
-            const inverseScale = 1 / mapState.scale;
-            // 🌟 通常のピン
-            pin.style.transform = `scale(${inverseScale * 0.5})`; 
             pin.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))";
             const originalY = parseFloat(pin.style.top) || 0;
             pin.style.zIndex = Math.round(originalY) + 50;
         });
+        updateTransform(); 
     }
 }
