@@ -218,7 +218,13 @@ function setupEventListeners() {
     const mapFabBtn = document.getElementById('map-fab-btn');
     
     // ホーム画面の「地図ボタン」で地図を開く
-    if(mapFabBtn) mapFabBtn.addEventListener('click', goToMap);
+    if(mapFabBtn) mapFabBtn.addEventListener('click', () => {
+        const mapInput = document.getElementById('map-search-input');
+        if (mapInput) {
+            mapInput.value = '';
+        }
+        goToMap();
+    });
     
     // 新しい地図ロジックの初期化を実行
     // (地図内の検索ボタンや閉じるボタン、ドラッグ操作などはこの中で設定されます)
@@ -515,6 +521,11 @@ function goToMap() {
     viewHome.classList.remove('active'); viewHome.classList.add('hidden');
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewMap.classList.remove('hidden'); viewMap.classList.add('active');
+
+    const mapPopup = document.getElementById('map-popup');
+    if (mapPopup) {
+        mapPopup.classList.add('hidden');
+    }
 
     // 初期表示時に位置合わせ（初回のみ画像ロード待ちが必要かも）
     if(mapImage.complete) centerMap();
