@@ -218,7 +218,13 @@ function setupEventListeners() {
     const mapFabBtn = document.getElementById('map-fab-btn');
     
     // ホーム画面の「地図ボタン」で地図を開く
-    if(mapFabBtn) mapFabBtn.addEventListener('click', goToMap);
+    if(mapFabBtn) mapFabBtn.addEventListener('click', () => {
+        const mapInput = document.getElementById('map-search-input');
+        if (mapInput) {
+            mapInput.value = '';
+        }
+        goToMap();
+    });
     
     // 新しい地図ロジックの初期化を実行
     // (地図内の検索ボタンや閉じるボタン、ドラッグ操作などはこの中で設定されます)
@@ -479,14 +485,13 @@ function updateModalFavBtn(id) {
 window.openMapForPlace = function(e, term) {
     e.stopPropagation(); // 親要素(li)のクリックイベント（詳細モーダルを開く）を止める
     
-    // 地図画面へ遷移
-    goToMap();
-    
     // 地図の検索窓に用語をセットしておく（ユーザーが何を探しているか分かりやすくするため）
     const mapInput = document.getElementById('map-search-input');
     if (mapInput) {
         mapInput.value = term;
     }
+    // 地図画面へ遷移
+    goToMap();
 };
 
 // --- 新・地図機能ロジック (Google Map風操作) ---
@@ -495,6 +500,10 @@ const viewMap = document.getElementById('view-map');
 const mapContainer = document.getElementById('map-container');
 const mapContent = document.getElementById('map-content');
 const mapImage = document.getElementById('map-image');
+const mapPopup = document.getElementById('map-popup');
+const mapPopupTerm = document.getElementById('map-popup-term');
+const mapPopupSearchBtn = document.getElementById('map-popup-search-btn');
+const mapPopupCloseBtn = document.getElementById('map-popup-close-btn');
 
 // 状態管理
 let mapState = {
@@ -512,6 +521,11 @@ function goToMap() {
     viewHome.classList.remove('active'); viewHome.classList.add('hidden');
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewMap.classList.remove('hidden'); viewMap.classList.add('active');
+
+    const mapPopup = document.getElementById('map-popup');
+    if (mapPopup) {
+        mapPopup.classList.add('hidden');
+    }
 
     // 初期表示時に位置合わせ（初回のみ画像ロード待ちが必要かも）
     if(mapImage.complete) centerMap();
@@ -532,26 +546,37 @@ function centerMap() {
     mapState.y = (ch - ih * mapState.scale) / 2;
     
     updateTransform();
-}
-
-function updateTransform() {
-    if(!mapContent) return;
-    mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
-}
-
-// 検索実行
-function executeMapSearch() {
-    const input = document.getElementById('map-search-input');
-    const query = input.value.trim();
-    if (query) {
-        // 地図を閉じて検索結果画面へ
-        viewMap.classList.remove('active'); viewMap.classList.add('hidden');
-        // 既存の検索関数を呼び出す
-        goToResults(query);
-        // 入力欄をクリアするかはお好みで
-        // input.value = '';
+    renderMapPins();
+    const mapInput = document.getElementById('map-search-input');
+    if (mapInput && mapInput.value.trim() !== '') {
+        setTimeout(() => {
+            executeMapSearch();
+        }, 50); // ピンの描画完了を待つために少しだけ遅延させる
     }
 }
+
+// function updateTransform() {
+//     if(!mapContent) return;
+//     mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
+//     const inverseScale = 1 / mapState.scale;
+//     document.querySelectorAll('.map-pin').forEach(pin => {
+//         pin.style.transform = `scale(${inverseScale})`;
+//     });
+// }
+
+// 検索実行
+// function executeMapSearch() {
+//     const input = document.getElementById('map-search-input');
+//     const query = input.value.trim();
+//     if (query) {
+//         // 地図を閉じて検索結果画面へ
+//         viewMap.classList.remove('active'); viewMap.classList.add('hidden');
+//         // 既存の検索関数を呼び出す
+//         goToResults(query);
+//         // 入力欄をクリアするかはお好みで
+//         // input.value = '';
+//     }
+// }
 
 // --- script.js の initMapLogic 関数を丸ごと書き換え ---
 
@@ -776,5 +801,272 @@ function checkBoundaries() {
         mapState.y = nextY;
         mapContent.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)';
         updateTransform();
+    }
+}
+
+// ポップアップを閉じる処理
+if (mapPopupCloseBtn) {
+    mapPopupCloseBtn.addEventListener('click', () => {
+        mapPopup.classList.add('hidden');
+
+        document.querySelectorAll('.map-pin').forEach(pin => {
+            pin.classList.remove('highlighted-pin');
+            pin.style.opacity = "1";
+            const inverseScale = 1 / mapState.scale;
+            pin.style.transform = `scale(${inverseScale * 0.4})`; // 0.4倍の通常サイズ
+            pin.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))"; // 通常の影
+            const originalY = parseFloat(pin.style.top) || 0;
+            pin.style.zIndex = Math.round(originalY) + 50; // z-indexを元の高さ計算に戻す
+        });
+    });
+}
+
+// ポップアップを表示する関数
+function showMapPopup(item) {
+    if(!mapPopup) return;
+    mapPopupTerm.textContent = item.term;
+    
+    // 検索結果を見るボタンの動作
+    mapPopupSearchBtn.onclick = () => {
+        mapPopup.classList.add('hidden'); // ポップアップを閉じる
+        
+        // 地図を閉じて検索結果画面へ遷移
+        const closeMapBtn = document.getElementById('map-close-btn');
+        if (closeMapBtn) closeMapBtn.click();
+        
+        goToResults(item.term); // 用語で検索実行
+    };
+    
+    mapPopup.classList.remove('hidden');
+}
+
+// マップ上にピンを描画する関数
+function renderMapPins() {
+    if (!mapContent) return;
+
+    // 既存のピンを一旦すべて削除（初期化）
+    document.querySelectorAll('.map-pin').forEach(p => p.remove());
+
+    const inverseScale = 1 / mapState.scale;
+
+    termsData.forEach(item => {
+        if (item.map_x != null && item.map_y != null) {
+            const pin = document.createElement('div');
+            pin.className = 'map-pin';
+
+            pin.dataset.termId = item.id;
+            pin.dataset.termName = item.term;
+            pin.dataset.mapY = item.map_y;
+                        
+            // パーセント指定で配置
+            pin.style.left = `${item.map_x}%`;
+            pin.style.top = `${item.map_y}%`;
+
+            pin.style.zIndex = Math.round(item.map_y) + 50;
+
+            // ベースサイズが2倍なので「0.4倍」にして標準サイズにする
+            pin.style.transform = `scale(${inverseScale * 0.4})`;
+            
+            // 地図のドラッグ操作（pointerdown）をピン上でキャンセルする
+            pin.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+            });
+
+            // クリック時のポップアップ表示とカメラ移動
+            pin.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                try {
+                    // 1. 他のピンを薄くする
+                    document.querySelectorAll('.map-pin').forEach(p => {
+                        p.classList.remove('highlighted-pin');
+                        // p.style.opacity = "0.5"; 
+                        const invScale = 1 / mapState.scale;
+                        p.style.transform = `scale(${invScale * 0.4})`;
+                        p.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))";
+                        p.style.zIndex = Math.round(parseFloat(p.style.top) || 0) + 50;
+                    });
+
+                    // 2. クリックされたピンをハイライト
+                    pin.classList.add('highlighted-pin');
+                    pin.style.opacity = "1";
+                    pin.style.filter = "drop-shadow(0px 0px 15px rgba(0, 86, 179, 0.8))";
+                    pin.style.zIndex = 999;
+
+                    const mapContainer = document.getElementById('map-container');
+                    const mapImage = document.getElementById('map-image');
+                    
+                    if(mapContainer && mapImage) {
+                        const cw = mapContainer.clientWidth;
+                        const ch = mapContainer.clientHeight;
+                        const iw = mapImage.naturalWidth || 1000;
+                        const ih = mapImage.naturalHeight || 1000;
+                        
+                        const px = item.map_x / 100;
+                        const py = item.map_y / 100;
+                        
+                        // ズームイン（すでに0.8倍以上拡大されている場合は、今の倍率を維持する）
+                        mapState.scale = Math.max(mapState.scale, 0.8);
+                        
+                        // 画面中央にピンが来るように計算
+                        mapState.x = (cw / 2) - (iw * px * mapState.scale);
+                        mapState.y = (ch / 2) - (ih * py * mapState.scale);
+                        
+                        // アニメーションを有効にして滑らかに移動させる
+                        mapContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                        
+                        // updateTransformを呼ぶことでカメラ位置とピンのサイズ（0.75倍ハイライト）が再計算されます
+                        updateTransform(); 
+                        
+                        // 移動が終わったら transition を元に戻す
+                        setTimeout(() => {
+                            mapContent.style.transition = 'none';
+                        }, 400);
+                    }
+
+                } catch(error) {
+                    console.error("ピン装飾・移動エラー:", error);
+                }
+                
+                // ポップアップを表示
+                showMapPopup(item);
+            });
+
+            mapContent.appendChild(pin);
+        }
+    });
+}
+
+// --- 地図の拡大縮小時にピンのサイズを再計算する処理 ---
+function updateTransform() {
+    if(!mapContent) return;
+    mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
+
+    const inverseScale = 1 / mapState.scale;
+    document.querySelectorAll('.map-pin').forEach(pin => {
+        if(!pin.classList.contains('highlighted-pin')){
+            // 🌟 通常のピン
+            pin.style.transform = `scale(${inverseScale * 0.4})`;
+        } else {
+            // 🌟 ハイライト中のピン
+            pin.style.transform = `scale(${inverseScale * 0.5})`;
+        }
+    });
+}
+
+// --- 検索実行時、一致するピンがあればハイライト＆移動させる処理 ---
+function executeMapSearch() {
+    const input = document.getElementById('map-search-input');
+    const query = input.value.trim();
+    
+    if (query) {
+        let foundPin = false;
+        let targetPin = null; 
+
+        document.querySelectorAll('.map-pin').forEach(pin => {
+            const termName = pin.dataset.termName || '';
+            if(termName.includes(query)){
+                // 検索に一致したピンをハイライト
+                pin.classList.add('highlighted-pin');
+                pin.style.opacity = "1";
+                pin.style.filter = "drop-shadow(0px 0px 15px rgba(0, 86, 179, 0.8))";
+                pin.style.zIndex = 999;
+                
+                foundPin = true;
+                if(!targetPin) targetPin = pin; // 最初に見つかったピンを記録する
+            } else {
+                // 一致しないピンはハイライト解除して目立たなくする
+                pin.classList.remove('highlighted-pin');
+                pin.style.opacity = "1"; 
+                pin.style.filter = "none";
+                const originalY = parseFloat(pin.style.top) || 0;
+                pin.style.zIndex = Math.round(originalY) + 50;
+            }
+        });
+        
+        if(foundPin && targetPin) {
+            // 見つかったピンの位置へカメラを移動（パン）してズームする
+            const mapContainer = document.getElementById('map-container');
+            const mapImage = document.getElementById('map-image');
+            const mapContent = document.getElementById('map-content');
+            
+            if(mapContainer && mapImage && mapContent) {
+                const cw = mapContainer.clientWidth;
+                const ch = mapContainer.clientHeight;
+                const iw = mapImage.naturalWidth || 1000;
+                const ih = mapImage.naturalHeight || 1000;
+                
+                const px = parseFloat(targetPin.style.left) / 100;
+                const py = parseFloat(targetPin.style.top) / 100;
+                
+                // ズームインさせる
+                mapState.scale = 0.8;
+                
+                // 画面中央にピンが来るように計算
+                mapState.x = (cw / 2) - (iw * px * mapState.scale);
+                mapState.y = (ch / 2) - (ih * py * mapState.scale);
+                
+                // アニメーションを有効にして滑らかに移動させる
+                mapContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                
+                updateTransform(); 
+                
+                // 移動が終わったら transition を元に戻す
+                setTimeout(() => {
+                    mapContent.style.transition = 'none';
+                }, 400);
+            }
+
+            //カメラ移動と同時にポップアップも表示する
+            const termId = parseInt(targetPin.dataset.termId, 10);
+            const targetItem = termsData.find(item => item.id === termId);
+            if(targetItem) {
+                showMapPopup(targetItem);
+            }
+
+        } else if(!foundPin) {
+            // ピンが見つからなかった場合はマップを閉じず、ピンのハイライトを解除して全体表示（初期状態）に戻す
+            document.querySelectorAll('.map-pin').forEach(pin => {
+                pin.classList.remove('highlighted-pin');
+                pin.style.opacity = "1";
+                pin.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))";
+                const originalY = parseFloat(pin.style.top) || 0;
+                pin.style.zIndex = Math.round(originalY) + 50;
+            });
+
+            const mapContainer = document.getElementById('map-container');
+            const mapImage = document.getElementById('map-image');
+            const mapContent = document.getElementById('map-content');
+
+            if(mapContainer && mapImage && mapContent) {
+                const cw = mapContainer.clientWidth;
+                const ch = mapContainer.clientHeight;
+                const iw = mapImage.naturalWidth || 1000;
+                const ih = mapImage.naturalHeight || 1000;
+                
+                // 初期のズーム倍率と位置に戻す
+                mapState.scale = 0.3; 
+                mapState.x = (cw - iw * mapState.scale) / 2;
+                mapState.y = (ch - ih * mapState.scale) / 2;
+                
+                // アニメーション付きで移動
+                mapContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                updateTransform(); 
+                
+                setTimeout(() => {
+                    mapContent.style.transition = 'none';
+                }, 400);
+            }
+        }
+    } else {
+        // 検索枠が空の場合は全てのピンを通常状態に戻す
+        document.querySelectorAll('.map-pin').forEach(pin => {
+            pin.classList.remove('highlighted-pin');
+            pin.style.opacity = "1";
+            pin.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))";
+            const originalY = parseFloat(pin.style.top) || 0;
+            pin.style.zIndex = Math.round(originalY) + 50;
+        });
+        updateTransform(); 
     }
 }
