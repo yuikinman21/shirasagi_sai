@@ -575,28 +575,27 @@ body {
     position: absolute;
     width: 28px;
     height: 42px;
-    /* ピンの先端（下部中央）を正確な座標に合わせるためのネガティブマージン */
-    margin-left: -14px; /* 横幅の半分を左へ */
-    margin-top: -42px;  /* 縦幅の全量を上へ */
+    margin-left: -14px;
+    margin-top: -42px;
     
-    /* 添付画像に近いデザインのSVG */
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36"><path fill="%23F04D37" d="M12 0C5.373 0 0 5.373 0 12c0 8.25 12 24 12 24s12-15.75 12-24C24 5.373 18.627 0 12 0zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"/></svg>');
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36"><path fill="%237f8c8d" d="M12 0C5.373 0 0 5.373 0 12c0 8.25 12 24 12 24s12-15.75 12-24C24 5.373 18.627 0 12 0zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"/></svg>');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center bottom;
-    
-    /* 拡大縮小の基準点を「ピンの先端」に固定（これがないとズーム時にピンがズレます） */
     transform-origin: center bottom; 
-    
     cursor: pointer;
     z-index: 50;
-    filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.25)); /* 影をつけて浮き上がらせる */
-    will-change: transform, opacity, filter;
-    transition: opacity 0.3s ease, filter 0.3s ease, z-index 0.3s ease;
+    filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.25));
+    will-change: transform;
 }
 
 .map-pin:active {
     filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));
+}
+
+/* 👇 新規追加：検索一致やクリック時のハイライト用ピン（テーマカラー %230056b3） */
+.map-pin.highlighted-pin {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36"><path fill="%230056b3" d="M12 0C5.373 0 0 5.373 0 12c0 8.25 12 24 12 24s12-15.75 12-24C24 5.373 18.627 0 12 0zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"/></svg>');
 }
 
 /* --- 下部ポップアップ --- */
