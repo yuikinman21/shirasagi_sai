@@ -802,7 +802,7 @@ if (mapPopupCloseBtn) {
             pin.classList.remove('highlighted-pin');
             pin.style.opacity = "1";
             const inverseScale = 1 / mapState.scale;
-            pin.style.transform = `scale(${inverseScale * 0.5})`; // 0.5倍の通常サイズ
+            pin.style.transform = `scale(${inverseScale * 0.4})`; // 0.4倍の通常サイズ
             pin.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))"; // 通常の影
             const originalY = parseFloat(pin.style.top) || 0;
             pin.style.zIndex = Math.round(originalY) + 50; // z-indexを元の高さ計算に戻す
@@ -853,8 +853,8 @@ function renderMapPins() {
 
             pin.style.zIndex = Math.round(item.map_y) + 50;
 
-            // ベースサイズが2倍なので「0.5倍」にして標準サイズにする
-            pin.style.transform = `scale(${inverseScale * 0.5})`;
+            // ベースサイズが2倍なので「0.4倍」にして標準サイズにする
+            pin.style.transform = `scale(${inverseScale * 0.4})`;
             
             // 地図のドラッグ操作（pointerdown）をピン上でキャンセルする
             pin.addEventListener('pointerdown', (e) => {
@@ -869,9 +869,9 @@ function renderMapPins() {
                     // 1. 他のピンを薄くする
                     document.querySelectorAll('.map-pin').forEach(p => {
                         p.classList.remove('highlighted-pin');
-                        p.style.opacity = "0.5"; 
+                        // p.style.opacity = "0.5"; 
                         const invScale = 1 / mapState.scale;
-                        p.style.transform = `scale(${invScale * 0.5})`;
+                        p.style.transform = `scale(${invScale * 0.4})`;
                         p.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))";
                         p.style.zIndex = Math.round(parseFloat(p.style.top) || 0) + 50;
                     });
@@ -935,10 +935,10 @@ function updateTransform() {
     document.querySelectorAll('.map-pin').forEach(pin => {
         if(!pin.classList.contains('highlighted-pin')){
             // 🌟 通常のピン
-            pin.style.transform = `scale(${inverseScale * 0.5})`;
+            pin.style.transform = `scale(${inverseScale * 0.4})`;
         } else {
             // 🌟 ハイライト中のピン
-            pin.style.transform = `scale(${inverseScale * 0.75})`;
+            pin.style.transform = `scale(${inverseScale * 0.5})`;
         }
     });
 }
@@ -966,7 +966,7 @@ function executeMapSearch() {
             } else {
                 // 一致しないピンはハイライト解除して目立たなくする
                 pin.classList.remove('highlighted-pin');
-                pin.style.opacity = "0.4"; 
+                pin.style.opacity = "1"; 
                 pin.style.filter = "none";
                 const originalY = parseFloat(pin.style.top) || 0;
                 pin.style.zIndex = Math.round(originalY) + 50;
