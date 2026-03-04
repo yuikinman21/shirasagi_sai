@@ -853,7 +853,7 @@ function renderMapPins() {
 
             pin.style.zIndex = Math.round(item.map_y) + 50;
 
-            // 🌟 ベースサイズが2倍なので「0.5倍」にして標準サイズにする
+            // ベースサイズが2倍なので「0.5倍」にして標準サイズにする
             pin.style.transform = `scale(${inverseScale * 0.5})`;
             
             // 地図のドラッグ操作（pointerdown）をピン上でキャンセルする
@@ -861,32 +861,63 @@ function renderMapPins() {
                 e.stopPropagation();
             });
 
-            // クリック時のポップアップ表示
+            // クリック時のポップアップ表示とカメラ移動
             pin.addEventListener('click', (e) => {
                 e.stopPropagation();
 
                 try {
+                    // 1. 他のピンを薄くする
                     document.querySelectorAll('.map-pin').forEach(p => {
                         p.classList.remove('highlighted-pin');
                         p.style.opacity = "0.5"; 
                         const invScale = 1 / mapState.scale;
-                        // 🌟 非選択ピンは 0.5倍
                         p.style.transform = `scale(${invScale * 0.5})`;
                         p.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))";
                         p.style.zIndex = Math.round(parseFloat(p.style.top) || 0) + 50;
                     });
 
-                    // 2. クリックされたピンをハイライトして大きくする
+                    // 2. クリックされたピンをハイライト
                     pin.classList.add('highlighted-pin');
                     pin.style.opacity = "1";
-                    const invScale = 1 / mapState.scale;
-                    // 🌟 ハイライトピンは 1.5倍表示にしたいので (1.5 * 0.5) = 0.75倍
-                    pin.style.transform = `scale(${invScale * 0.75})`; 
                     pin.style.filter = "drop-shadow(0px 0px 15px rgba(0, 86, 179, 0.8))";
                     pin.style.zIndex = 999;
+
+                    const mapContainer = document.getElementById('map-container');
+                    const mapImage = document.getElementById('map-image');
+                    
+                    if(mapContainer && mapImage) {
+                        const cw = mapContainer.clientWidth;
+                        const ch = mapContainer.clientHeight;
+                        const iw = mapImage.naturalWidth || 1000;
+                        const ih = mapImage.naturalHeight || 1000;
+                        
+                        const px = item.map_x / 100;
+                        const py = item.map_y / 100;
+                        
+                        // ズームイン（すでに0.8倍以上拡大されている場合は、今の倍率を維持する）
+                        mapState.scale = Math.max(mapState.scale, 0.8);
+                        
+                        // 画面中央にピンが来るように計算
+                        mapState.x = (cw / 2) - (iw * px * mapState.scale);
+                        mapState.y = (ch / 2) - (ih * py * mapState.scale);
+                        
+                        // アニメーションを有効にして滑らかに移動させる
+                        mapContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                        
+                        // updateTransformを呼ぶことでカメラ位置とピンのサイズ（0.75倍ハイライト）が再計算されます
+                        updateTransform(); 
+                        
+                        // 移動が終わったら transition を元に戻す
+                        setTimeout(() => {
+                            mapContent.style.transition = 'none';
+                        }, 400);
+                    }
+
                 } catch(error) {
-                    console.error("ピン装飾エラー:", error);
+                    console.error("ピン装飾・移動エラー:", error);
                 }
+                
+                // ポップアップを表示
                 showMapPopup(item);
             });
 
