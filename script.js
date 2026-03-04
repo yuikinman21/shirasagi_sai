@@ -1017,7 +1017,7 @@ function executeMapSearch() {
                 }, 400);
             }
 
-            // 👇【追加】カメラ移動と同時にポップアップも表示する
+            //カメラ移動と同時にポップアップも表示する
             const termId = parseInt(targetPin.dataset.termId, 10);
             const targetItem = termsData.find(item => item.id === termId);
             if(targetItem) {
@@ -1025,9 +1025,38 @@ function executeMapSearch() {
             }
 
         } else if(!foundPin) {
-             // 検索結果にない場合はマップを閉じて通常のリスト検索画面へ
-             viewMap.classList.remove('active'); viewMap.classList.add('hidden');
-             goToResults(query);
+            // ピンが見つからなかった場合はマップを閉じず、ピンのハイライトを解除して全体表示（初期状態）に戻す
+            document.querySelectorAll('.map-pin').forEach(pin => {
+                pin.classList.remove('highlighted-pin');
+                pin.style.opacity = "1";
+                pin.style.filter = "drop-shadow(0px 8px 8px rgba(0,0,0,0.25))";
+                const originalY = parseFloat(pin.style.top) || 0;
+                pin.style.zIndex = Math.round(originalY) + 50;
+            });
+
+            const mapContainer = document.getElementById('map-container');
+            const mapImage = document.getElementById('map-image');
+            const mapContent = document.getElementById('map-content');
+
+            if(mapContainer && mapImage && mapContent) {
+                const cw = mapContainer.clientWidth;
+                const ch = mapContainer.clientHeight;
+                const iw = mapImage.naturalWidth || 1000;
+                const ih = mapImage.naturalHeight || 1000;
+                
+                // 初期のズーム倍率と位置に戻す
+                mapState.scale = 0.3; 
+                mapState.x = (cw - iw * mapState.scale) / 2;
+                mapState.y = (ch - ih * mapState.scale) / 2;
+                
+                // アニメーション付きで移動
+                mapContent.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+                updateTransform(); 
+                
+                setTimeout(() => {
+                    mapContent.style.transition = 'none';
+                }, 400);
+            }
         }
     } else {
         // 検索枠が空の場合は全てのピンを通常状態に戻す
