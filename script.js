@@ -830,6 +830,7 @@ function renderMapPins() {
 
             pin.dataset.termId = item.id;
             pin.dataset.termName = item.term;
+            pin.dataset.mapY = item.map_y;
                         
             // パーセント指定で配置
             pin.style.left = `${item.map_x}%`;
@@ -847,6 +848,20 @@ function renderMapPins() {
             // クリック時のポップアップ表示
             pin.addEventListener('click', (e) => {
                 e.stopPropagation();
+
+                document.querySelectorAll('.map-pin').forEach(p => {
+                    p.classList.remove('active-pin');
+                    p.style.zIndex = Math.round(parseFloat(p.dataset.mapY)) + 50;
+                    // ハイライト中でなければスタイルを戻す
+                    if(!p.classList.contains('highlighted-pin')) {
+                         p.style.filter = "drop-shadow(0px 4px 4px rgba(0,0,0,0.25))";
+                    }
+                });
+
+                // クリックされたピンをアクティブにし、最前面に表示
+                pin.classList.add('active-pin');
+                pin.style.zIndex = 1000; // 最前面
+                pin.style.filter = "drop-shadow(0px 0px 8px rgba(0, 123, 255, 0.8))";
                 showMapPopup(item);
             });
 
@@ -873,34 +888,49 @@ function updateTransform() {
 // --- 検索実行時、一致するピンがあればハイライトさせる処理 ---
 function executeMapSearch() {
     const input = document.getElementById('map-search-input');
-    const query = input.value.trim();
-    if (query) {
-        let foundPin = false;
+    const query = input.value.trim().toLowerCase();
+    
+    // 検索語が空の場合はリセット
+    if (!query) {
         document.querySelectorAll('.map-pin').forEach(pin => {
-            const termName = pin.dataset.termName || '';
-            if(termName.includes(query)){
-                pin.classList.add('highlighted-pin');
-                
-                const inverseScale = 1 / mapState.scale;
-                pin.style.transform = `scale(${inverseScale * 1.5})`; 
-                pin.style.filter = "drop-shadow(0px 0px 10px rgba(240,77,55,0.8))";
-                pin.style.zIndex = 999;
-                
-                foundPin = true;
-            } else {
-                pin.classList.remove('highlighted-pin');
-                pin.style.opacity = "0.3";
-                const inverseScale = 1 / mapState.scale;
-                pin.style.transform = `scale(${inverseScale})`; 
-                pin.style.filter = "none";
-                const originalY = parseFloat(pin.style.top) || 0;
-                pin.style.zIndex = Math.round(originalY) + 50;
-            }
+            pin.classList.remove('highlighted-pin');
+            pin.style.opacity = "1";
+            pin.style.zIndex = Math.round(parseFloat(pin.dataset.mapY)) + 50;
+            pin.style.filter = "drop-shadow(0px 4px 4px rgba(0,0,0,0.25))";
         });
+        return;
+    }
+
+    let foundPin = false;
+
+    document.querySelectorAll('.map-pin').forEach(pin => {
+        const termName = (pin.dataset.termName || '').toLowerCase();
         
-        if(!foundPin){
-             viewMap.classList.remove('active'); viewMap.classList.add('hidden');
-             goToResults(query);
+        if (termName.includes(query)) {
+            // ヒットしたピン
+            pin.classList.add('highlighted-pin');
+            pin.style.opacity = "1";
+            pin.style.zIndex = 999; // 手前に出す
+            pin.style.filter = "drop-shadow(0px 0px 12px rgba(240,77,55,0.9))"; // 赤く光らせる
+            foundPin = true;
+        } else {
+            // ヒットしなかったピンは薄くし、背面に回す
+            pin.classList.remove('highlighted-pin');
+            pin.style.opacity = "0.2";
+            pin.style.zIndex = Math.round(parseFloat(pin.dataset.mapY)); // 50を足さずに奥へ
+            pin.style.filter = "none";
         }
+    });
+    
+    // マップ内に存在しない用語の場合は、従来のリストの検索結果へ遷移する
+    if (!foundPin) {
+        // ピンの表示状態を元に戻す
+        document.querySelectorAll('.map-pin').forEach(p => {
+             p.style.opacity = "1";
+             p.style.zIndex = Math.round(parseFloat(p.dataset.mapY)) + 50;
+             p.style.filter = "drop-shadow(0px 4px 4px rgba(0,0,0,0.25))";
+        });
+        viewMap.classList.remove('active'); viewMap.classList.add('hidden');
+        goToResults(query);
     }
 }
