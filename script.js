@@ -825,6 +825,11 @@ if (mapPopupCloseBtn) {
 function showMapPopup(item) {
     if(!mapPopup) return;
     mapPopupTerm.textContent = item.term;
+
+    const mapPopupDesc = document.getElementById('map-popup-description');
+    if (mapPopupDesc) {
+        mapPopupDesc.innerHTML = (item.description || '').replace(/\n/g, '<br>');
+    }
     
     // 検索結果を見るボタンの動作
     mapPopupSearchBtn.onclick = () => {
