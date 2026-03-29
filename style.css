@@ -501,6 +501,8 @@ body {
     max-width: none; /* 親要素の幅に制限されない */
     pointer-events: none; /* 画像自体のドラッグ防止 */
     user-select: none;
+    filter: grayscale(50%);
+    opacity: 0.7;
 }
 
 /* 1. 「用語一覧」と「地図ボタン」をまとめる枠 */
