@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     init();
     loadFavorites();
     setupEventListeners();
-    setupSwipeListener();
     // 画面ロード時にタグのあふれチェックを実行
     checkTagOverflow();
 });
@@ -249,98 +248,6 @@ function goToHome() {
     viewHome.classList.remove('hidden'); viewHome.classList.add('active');
     window.scrollTo(0, 0);
 }
-
-// --- スワイプジェスチャーのセットアップ ---
-function setupSwipeListener() {
-    // スマートフォンのみ有効にする
-    const isSmartphone = window.matchMedia('(max-width: 767px)').matches;
-    if (!isSmartphone) return;
-
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let isSwipingBack = false;
-
-    document.addEventListener('touchstart', (e) => {
-        // 検索結果画面かつモーダルが閉じている場合のみスワイプを開始
-        if (!viewResults.classList.contains('active') || modalOverlay.classList.contains('active')) {
-            isSwipingBack = false;
-            return;
-        }
-
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        isSwipingBack = false;
-        
-        // スワイプ中のtransition無効にする
-        viewResults.style.transition = 'none';
-        viewHome.style.transition = 'none';
-    }, false);
-
-    document.addEventListener('touchmove', (e) => {
-        // 検索結果画面でモーダルが閉じている場合のみスワイプを処理
-        if (!viewResults.classList.contains('active') || modalOverlay.classList.contains('active')) {
-            return;
-        }
-
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
-        
-        const deltaX = currentX - touchStartX;
-        const deltaY = currentY - touchStartY;
-        
-        // 縦方向のスワイプではスキップ（横への移動が大きい場合のみ処理）
-        if (Math.abs(deltaY) > Math.abs(deltaX) * 0.5) return;
-        
-        // 左から右へのスワイプのみ処理（負の移動は無視）
-        if (deltaX <= 0) return;
-        
-        isSwipingBack = true;
-        
-        // 右方向への移動距離を計算（画面幅を超えないように制限）
-        const translateX = Math.min(deltaX, window.innerWidth);
-        viewResults.style.transform = `translateX(${translateX}px)`;
-        
-        // ホーム画面をスケール表示（背景から出てくる効果）
-        const progress = Math.min(deltaX / window.innerWidth, 1);
-        const homeScale = 0.98 + progress * 0.02;
-        viewHome.style.transform = `scale(${homeScale})`;
-    }, false);
-
-    document.addEventListener('touchend', (e) => {
-        // スワイプ中でない場合はスキップ
-        if (!isSwipingBack) {
-            return;
-        }
-
-        const touchEndX = e.changedTouches[0].clientX;
-        const touchEndY = e.changedTouches[0].clientY;
-        
-        const deltaX = touchEndX - touchStartX;
-        const deltaY = touchEndY - touchStartY;
-        
-        // transition を復元してアニメーション有効にする
-        viewResults.style.transition = '';
-        viewHome.style.transition = '';
-        
-        // スワイプ距離が50px未満で且つホーム画面でない場合のみリセット
-        const swipeThreshold = 50;
-        if (deltaX < swipeThreshold) {
-            // スワイプ距離不足 -> 元の状態に戻す（アニメーション付き）
-            viewResults.style.transform = 'translateX(0)';
-            viewHome.style.transform = 'scale(1)';
-            isSwipingBack = false;
-            return;
-        }
-        
-        // 十分なスワイプ距離 -> トップ画面に戻る
-        // 画面のinline styleをクリアしてからgoToHome()を呼ぶ
-        viewResults.style.transform = '';
-        viewHome.style.transform = '';
-        goToHome();
-        isSwipingBack = false;
-    }, false);
-}
-
 
 // --- 4. 描画ロジック ---
 function renderList() {
