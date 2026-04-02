@@ -959,6 +959,21 @@ function updateTransform() {
     });
 }
 
+// トースト通知を表示する関数
+function showToast(message) {
+    const toast = document.getElementById('toast-notification');
+    const toastMsg = document.getElementById('toast-message');
+    if (!toast || !toastMsg) return;
+
+    toastMsg.textContent = message;
+    toast.classList.add('show');
+
+    // 3秒後に自動で消す
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
 // --- 検索実行時、一致するピンがあればハイライト＆移動させる処理 ---
 function executeMapSearch() {
     const input = document.getElementById('map-search-input');
@@ -1030,6 +1045,7 @@ function executeMapSearch() {
             }
 
         } else if(!foundPin) {
+            showToast("この用語の場所は登録されていません");
             // ピンが見つからなかった場合はマップを閉じず、ピンのハイライトを解除して全体表示（初期状態）に戻す
             document.querySelectorAll('.map-pin').forEach(pin => {
                 pin.classList.remove('highlighted-pin');
