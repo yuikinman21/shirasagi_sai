@@ -517,7 +517,7 @@ let mapState = {
 const MIN_SCALE = 0.2;
 const MAX_SCALE = 4.0;
 
-function goToMap() {
+async function goToMap() {
     viewHome.classList.remove('active'); viewHome.classList.add('hidden');
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewMap.classList.remove('hidden'); viewMap.classList.add('active');
@@ -527,9 +527,27 @@ function goToMap() {
         mapPopup.classList.add('hidden');
     }
 
-    // 初期表示時に位置合わせ（初回のみ画像ロード待ちが必要かも）
-    if(mapImage.complete) centerMap();
-    else mapImage.onload = centerMap;
+    if (termsData.length === 0) {
+        // スプレッドシートの取得処理(sheetPromise)が終わるまで待つ
+        if (window.sheetPromise) {
+            try { await window.sheetPromise; } catch(e) { console.warn(e); }
+        }
+        // 代入処理やバックアップデータの読み込みが終わるまで少し待機（最大2秒）
+        for (let i = 0; i < 20; i++) {
+            if (termsData.length > 0) break;
+            await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒ずつチェック
+        }
+    }
+    // UIの描画（幅と高さの計算）が完了するよう少し遅延させる
+    setTimeout(() => {
+        // 画像がロード済みで、かつ画像の幅が正しく取得できているかチェック
+        if(mapImage.complete && mapImage.naturalWidth > 0) {
+            centerMap();
+        } else {
+            // ロードされていない場合はロード完了時に実行
+            mapImage.onload = () => centerMap();
+        }
+    }, 100);
 }
 
 function centerMap() {
