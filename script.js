@@ -518,6 +518,10 @@ const MIN_SCALE = 0.2;
 const MAX_SCALE = 4.0;
 
 async function goToMap() {
+    if (mapContent) {
+        mapContent.style.opacity = '0';
+        mapContent.style.transition = 'none'; // 即座に透明にする
+    }
     viewHome.classList.remove('active'); viewHome.classList.add('hidden');
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewMap.classList.remove('hidden'); viewMap.classList.add('active');
@@ -565,6 +569,19 @@ function centerMap() {
     
     updateTransform();
     renderMapPins();
+    if (mapContent) {
+        mapContent.style.transition = 'opacity 0.3s ease';
+        // 少しの遅延を入れるとブラウザの描画が安定します
+        requestAnimationFrame(() => {
+            mapContent.style.opacity = '1';
+        });
+        
+        // フェードイン完了後に transition を元に戻す（ドラッグ操作のため）
+        setTimeout(() => {
+            mapContent.style.transition = 'none';
+        }, 300);
+    }
+    
     const mapInput = document.getElementById('map-search-input');
     if (mapInput && mapInput.value.trim() !== '') {
         setTimeout(() => {
