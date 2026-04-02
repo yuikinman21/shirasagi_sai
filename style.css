@@ -674,15 +674,15 @@ body {
     top: 20px; /* 画面上部からの位置 */
     left: 50%;
     transform: translateX(-50%) translateY(-20px);
-    background: rgba(33, 43, 54, 0.95); /* 少し透け感のあるダークカラー */
+    background: var(--primary); 
     color: #ffffff;
     padding: 12px 24px;
     border-radius: 30px;
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    z-index: 3000; /* マップより上に表示 */
+    box-shadow: 0 8px 24px rgba(0, 86, 179, 0.3); 
+    z-index: 3000;
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
