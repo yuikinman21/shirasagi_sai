@@ -1030,6 +1030,7 @@ function executeMapSearch() {
             }
 
         } else if(!foundPin) {
+            alert("この用語の場所は登録されていません");
             // ピンが見つからなかった場合はマップを閉じず、ピンのハイライトを解除して全体表示（初期状態）に戻す
             document.querySelectorAll('.map-pin').forEach(pin => {
                 pin.classList.remove('highlighted-pin');
