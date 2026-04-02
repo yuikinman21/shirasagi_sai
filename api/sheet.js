@@ -19,7 +19,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const jsonPath = path.join(process.cwd(), 'data.json');
+    const jsonPath = path.join(process.cwd(), 'sampledata.json');
     const jsonData = fs.readFileSync(jsonPath, 'utf8');
     
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
