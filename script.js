@@ -755,7 +755,13 @@ function initMapLogic() {
 
     mapContainer.addEventListener('pointerup', endDrag);
     mapContainer.addEventListener('pointercancel', endDrag);
-    mapContainer.addEventListener('pointerleave', endDrag);
+    mapContainer.addEventListener('pointerleave', (e) => {
+        // 現在のポインターがキャプチャされていれば、外に出ても操作継続するため無視
+        if (mapContainer.hasPointerCapture && mapContainer.hasPointerCapture(e.pointerId)) {
+            return;
+        }
+        endDrag(e);
+    });
     
     // PC用ホイールズーム (変更なし)
     mapContainer.addEventListener('wheel', (e) => {
