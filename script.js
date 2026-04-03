@@ -652,6 +652,7 @@ function initMapLogic() {
         // 速度が十分小さくなったら停止して境界チェック
         if (Math.abs(velocityX) < 0.1 && Math.abs(velocityY) < 0.1) {
             checkBoundaries();
+            inertiaRequestId = null;
             return;
         }
 
