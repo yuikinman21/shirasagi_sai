@@ -593,29 +593,6 @@ function centerMap() {
     }
 }
 
-// function updateTransform() {
-//     if(!mapContent) return;
-//     mapContent.style.transform = `translate(${mapState.x}px, ${mapState.y}px) scale(${mapState.scale})`;
-//     const inverseScale = 1 / mapState.scale;
-//     document.querySelectorAll('.map-pin').forEach(pin => {
-//         pin.style.transform = `scale(${inverseScale})`;
-//     });
-// }
-
-// 検索実行
-// function executeMapSearch() {
-//     const input = document.getElementById('map-search-input');
-//     const query = input.value.trim();
-//     if (query) {
-//         // 地図を閉じて検索結果画面へ
-//         viewMap.classList.remove('active'); viewMap.classList.add('hidden');
-//         // 既存の検索関数を呼び出す
-//         goToResults(query);
-//         // 入力欄をクリアするかはお好みで
-//         // input.value = '';
-//     }
-// }
-
 // --- script.js の initMapLogic 関数を丸ごと書き換え ---
 
 function initMapLogic() {
