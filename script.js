@@ -526,7 +526,6 @@ async function goToMap() {
     viewResults.classList.remove('active'); viewResults.classList.add('hidden');
     viewMap.classList.remove('hidden'); viewMap.classList.add('active');
 
-    const mapPopup = document.getElementById('map-popup');
     if (mapPopup) {
         mapPopup.classList.add('hidden');
     }
