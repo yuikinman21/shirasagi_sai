@@ -654,6 +654,7 @@ body {
     font-size: 14px;
     color: #555;
     line-height: 1.6;
+    white-space: pre-wrap;
 }
 
 /* 既存の #map-popup-term の margin-bottom を少し減らしてバランスを取る */
