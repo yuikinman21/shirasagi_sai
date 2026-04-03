@@ -537,6 +537,10 @@ async function goToMap() {
         }
         // 代入処理やバックアップデータの読み込みが終わるまで少し待機（最大2秒）
         for (let i = 0; i < 20; i++) {
+            if (window.termsData && Array.isArray(window.termsData) && window.termsData.length > 0) {
+                termsData = window.termsData;
+                break;
+            }
             if (termsData.length > 0) break;
             await new Promise(resolve => setTimeout(resolve, 100)); // 0.1秒ずつチェック
         }
