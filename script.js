@@ -442,7 +442,7 @@ function highlight(text, query) {
 
 function openModal(item) {
     document.getElementById('modal-term').textContent = item.term;
-    document.getElementById('modal-description').innerHTML = item.description.replace(/\n/g, '<br>');
+    document.getElementById('modal-description').textContent = item.description || '';
     document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${t}">${t}</span>`).join('');
     updateModalFavBtn(item.id);
     modalFavBtn.onclick = (e) => { toggleFav(e, item.id); updateModalFavBtn(item.id); };
