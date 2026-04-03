@@ -1,7 +1,7 @@
-import fs from 'fs';
-import path from 'path';
+const fs = require('fs');
+const path = require('path');
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const csvUrl = process.env.CSV_URL;
 
   if (csvUrl) {
@@ -19,7 +19,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const jsonPath = path.join(process.cwd(), 'data.json');
+    // ▼ 読み込み先を sampledata.json に変更
+    const jsonPath = path.join(process.cwd(), 'sampledata.json');
     const jsonData = fs.readFileSync(jsonPath, 'utf8');
     
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -28,4 +29,4 @@ export default async function handler(req, res) {
     console.error("ローカルJSONの読み込みエラー:", err);
     return res.status(500).json({ error: "ダミーデータの読み込みに失敗しました。" });
   }
-}
+};
