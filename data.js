@@ -62,8 +62,8 @@ async function loadSheetAsTerms(noCache = true) {
                 description: (row.description || '').trim(),
                 image: (row.image || '').trim(),
                 updated: updatedFieldKey ? (row[updatedFieldKey] || '').trim() : '',
-                map_x: row.map_x ? parseFloat(row.map_x) : null,
-                map_y: row.map_y ? parseFloat(row.map_y) : null
+                map_x: row.map_x != null && String(row.map_x).trim() !== '' ? parseFloat(row.map_x) : null,
+                map_y: row.map_y != null && String(row.map_y).trim() !== '' ? parseFloat(row.map_y) : null
             };
         }).filter(item => item.term); // 用語が必須
 
