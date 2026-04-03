@@ -397,7 +397,6 @@ body {
     display: flex;
     flex-direction: column;
     overflow: hidden; /* スクロール禁止 */
-    touch-action: none; /* ブラウザ標準のタッチ操作を無効化 */
 }
 
 /* --- 固定ヘッダー --- */
@@ -484,6 +483,7 @@ body {
     background-size: 20px 20px;
     background-color: #f0f2f5;
     cursor: grab;
+    touch-action: none; /* タッチデバイスでのブラウザのデフォルトジェスチャーを無効化 */
 }
 .map-container:active {
     cursor: grabbing;
@@ -639,6 +639,7 @@ body {
     /* スクロールバーを見えにくくする */
     scrollbar-width: thin;
     scrollbar-color: #ccc transparent;
+    touch-action: pan-y; /* タッチデバイスでの縦スクロールを有効にする */
 }
 
 .map-popup-body::-webkit-scrollbar {
