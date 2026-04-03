@@ -999,14 +999,14 @@ function showToast(message) {
 // --- 検索実行時、一致するピンがあればハイライト＆移動させる処理 ---
 function executeMapSearch() {
     const input = document.getElementById('map-search-input');
-    const query = input.value.trim();
+    const query = input.value.trim().toLowerCase();
     
     if (query) {
         let foundPin = false;
         let targetPin = null; 
 
         document.querySelectorAll('.map-pin').forEach(pin => {
-            const termName = pin.dataset.termName || '';
+            const termName = (pin.dataset.termName || '').toLowerCase();
             if(termName.includes(query)){
                 // 検索に一致したピンをハイライト
                 pin.classList.add('highlighted-pin');
