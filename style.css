@@ -629,11 +629,6 @@ body {
     cursor: pointer;
     color: var(--text-sub);
 }
-#map-popup-term {
-    margin: 0 0 16px 0;
-    font-size: 18px;
-    color: var(--text-main);
-}
 
 .map-popup-body {
     max-height: 120px; /* 説明文が長すぎる場合はスクロールさせる */
