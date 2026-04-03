@@ -850,7 +850,7 @@ function showMapPopup(item) {
 
     const mapPopupDesc = document.getElementById('map-popup-description');
     if (mapPopupDesc) {
-        mapPopupDesc.innerHTML = (item.description || '').replace(/\n/g, '<br>');
+        mapPopupDesc.textContent = item.description || '';
     }
     
     // 検索結果を見るボタンの動作
