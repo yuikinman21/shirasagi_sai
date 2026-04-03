@@ -739,6 +739,7 @@ body {
 .modal-header { margin-bottom: 16px; padding-right: 30px; }
 #modal-term { margin: 0 0 8px 0; font-size: 24px; color: var(--text-main); }
 .modal-body { font-size: 15px; color: #555; line-height: 1.7; max-height: 60vh; overflow-y: auto; }
+#modal-description { white-space: pre-wrap;}
 
 /* お問い合わせフォーム */
 .contact-desc { font-size: 14px; color: #555; margin-bottom: 20px; text-align: center; }
