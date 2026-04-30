@@ -37,11 +37,16 @@
             </div>
         </div>
 
-        <button id="show-all-link" class="view-all-btn">用語一覧を見る ❯</button>
+        <div class="view-all-wrapper">
+            <button id="show-all-link" class="view-all-btn">用語一覧を見る ❯</button>
+            <button id="map-fab-btn" class="map-fab-btn" aria-label="地図を開く">🗺️</button>
+        </div>
         <div class="home-footer">
             <a href="https://forms.gle/VD1gYno9abitxcDK7" target="_blank" rel="noopener noreferrer" class="text-link-btn">⚠️ 用語追加・不具合報告はこちら</a>
         </div>
     </div>
+
+
 </div>
 
 <div id="view-search-results" class="view-container hidden">
@@ -142,6 +147,42 @@
             <p id="modal-description">ここに詳細説明が入ります。</p>
         </div>
     </div>
+</div>
+
+<div id="view-map" class="view-container hidden">
+    <header class="map-header">
+        <div class="map-header-top">
+            <div class="campus-select-wrapper">
+                <select id="map-campus-select" class="map-select">
+                    <option value="nakamozu">中百舌鳥キャンパス</option>
+                    </select>
+            </div>
+            <button id="map-close-btn" class="map-close-btn">×</button>
+        </div>
+
+        <div class="map-search-bar">
+            <input type="text" id="map-search-input" class="search-input-lg" placeholder="用語を検索..." autocomplete="off">
+            <button id="map-search-submit" class="search-btn-primary" aria-label="検索">検索</button>
+        </div>
+    </header>
+
+    <div id="map-container" class="map-container">
+        <div id="map-content" class="map-content">
+            <img src="./nakamozu_map2025r4.png" alt="キャンパスマップ" id="map-image" class="map-image" draggable="false">
+        </div>
+    </div>
+    <div id="map-popup" class="map-popup hidden">
+        <button id="map-popup-close-btn" class="map-popup-close">×</button>
+        <h3 id="map-popup-term">用語名</h3>
+        <div class="map-popup-body">
+            <p id="map-popup-description" class="map-popup-desc"></p>
+        </div>
+        <button id="map-popup-search-btn" class="map-jump-btn">🔍 検索結果を見る</button>
+    </div>
+</div>
+<div id="toast-notification" class="toast-notification">
+    <span class="toast-icon">🙇</span>
+    <span id="toast-message" class="toast-message"></span>
 </div>
 </body>
 </html>
