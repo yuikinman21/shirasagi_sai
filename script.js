@@ -62,8 +62,8 @@ async function init() {
             return;
         }
 
-        // フォールバック: ローカルの data.json を使用
-        const response = await fetch('data.json?' + new Date().getTime());
+        // フォールバック: ローカルの sampledata.json を使用
+        const response = await fetch('sampledata.json?' + new Date().getTime());
         if (!response.ok) throw new Error('Network response was not ok');
         termsData = await response.json();
         renderHomeFavorites();
