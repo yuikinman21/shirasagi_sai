@@ -17,6 +17,10 @@ async function loadSheetAsTerms(noCache = true) {
         // ▼ パターンA：サンプル/ローカル環境 (APIがダミーの JSON を返してきた場合)
         if (contentType && contentType.includes("application/json")) {
             console.log("JSONダミーデータを読み込みました (Sample/Local mode)");
+            const badge = document.getElementById('sample-mode-badge');
+            if (badge) {
+                badge.classList.remove('hidden');
+            }
             const jsonData = await res.json();
             window.termsData = jsonData;
             return jsonData;
