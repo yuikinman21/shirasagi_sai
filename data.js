@@ -17,15 +17,6 @@ async function loadSheetAsTerms(noCache = true) {
         // ▼ パターンA：サンプル/ローカル環境 (APIがダミーの JSON を返してきた場合)
         if (contentType && contentType.includes("application/json")) {
             console.log("JSONダミーデータを読み込みました (Sample/Local mode)");
-<<<<<<< HEAD
-=======
-            
-            const badge = document.getElementById('sample-mode-badge');
-            if (badge) {
-                badge.classList.remove('hidden');
-            }
-
->>>>>>> parent of 5814166 (サンプルモードのバッジ表示処理を追加し、JSONデータの安全な解析とマッピングを実装)
             const jsonData = await res.json();
             window.termsData = jsonData;
             return jsonData;
