@@ -17,18 +17,45 @@ async function loadSheetAsTerms(noCache = true) {
         // ▼ パターンA：サンプル/ローカル環境 (APIがダミーの JSON を返してきた場合)
         if (contentType && contentType.includes("application/json")) {
             console.log("JSONダミーデータを読み込みました (Sample/Local mode)");
-<<<<<<< HEAD
-=======
             
-            const badge = document.getElementById('sample-mode-badge');
-            if (badge) {
-                badge.classList.remove('hidden');
+            // バッジの表示
+            const sampleBadge = document.getElementById('sample-mode-badge');
+            if (sampleBadge) {
+                sampleBadge.classList.remove('hidden');
             }
 
->>>>>>> parent of 5814166 (サンプルモードのバッジ表示処理を追加し、JSONデータの安全な解析とマッピングを実装)
-            const jsonData = await res.json();
-            window.termsData = jsonData;
-            return jsonData;
+            try {
+                const rawJson = await res.json();
+                // JSONが配列でない場合（オブジェクトに包まれている場合など）の安全対策
+                const dataArray = Array.isArray(rawJson) ? rawJson : (rawJson.data || rawJson.items || []);
+                
+                // CSVの時と同じように、データを安全な形式に整形（マッピング）する
+                const mappedJson = dataArray.map((row, idx) => {
+                    return {
+                        id: row.id ? parseInt(row.id, 10) : (idx + 1),
+                        term: (row.term || '').trim(),
+                        reading: (row.reading || '').trim(),
+                        // キーワードやタグが配列かどうかチェックして安全に変換
+                        keywords: Array.isArray(row.keywords) ? row.keywords : (row.keywords ? String(row.keywords).split(',').map(k => k.trim()) : []),
+                        tags: Array.isArray(row.tags) ? row.tags : [],
+                        description: (row.description || '').trim(),
+                        image: (row.image || '').trim(),
+                        updated: row.updated || '',
+                        // 座標データを確実に数値（Float）に変換
+                        map_x: row.map_x != null && String(row.map_x).trim() !== '' ? parseFloat(row.map_x) : null,
+                        map_y: row.map_y != null && String(row.map_y).trim() !== '' ? parseFloat(row.map_y) : null
+                    };
+                }).filter(item => item.term); // 用語が空のデータは弾く
+                
+                window.termsData = mappedJson;
+                console.log(`Loaded ${mappedJson.length} terms from JSON`);
+                return mappedJson;
+
+            } catch (err) {
+                console.error("❌ JSONデータの解析・マッピングに失敗しました:", err);
+                window.termsData = [];
+                return [];
+            }
         }
 
         // ▼ パターンB：本番環境 (APIがスプシの CSV を返してきた場合)
