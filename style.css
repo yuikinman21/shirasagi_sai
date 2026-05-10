@@ -750,7 +750,7 @@ body {
 #reset-search-btn { margin-top: 10px; padding: 8px 16px; background: #eee; border: none; border-radius: 6px; cursor: pointer; }
 
 /* モーダル */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(1px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(1px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; touch-action: manipulation; user-select: none; }
 .modal-overlay.active { opacity: 1; visibility: visible; }
 .modal-card { background: var(--white); width: 90%; max-width: 500px; border-radius: 20px; padding: 24px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); position: relative; transform: translateY(20px) scale(0.95); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
 .modal-overlay.active .modal-card { transform: translateY(0) scale(1); }
@@ -762,6 +762,9 @@ body {
 .modal-header { margin-bottom: 16px; padding-right: 30px; }
 #modal-term { margin: 0 0 8px 0; font-size: 24px; color: var(--text-main); }
 .modal-body { font-size: 15px; color: #555; line-height: 1.7; max-height: 60vh; overflow-y: auto; }
+.modal-image-wrap { margin-bottom: 16px; max-height: 240px; display: flex; align-items: center; justify-content: center; touch-action: manipulation; user-select: none; }
+.modal-image { display: block; max-width: 100%; max-height: 240px; object-fit: contain; border-radius: 14px; background: #f3f4f6; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); touch-action: manipulation; user-select: none; }
+.modal-image-frame { display: block; width: 100%; height: 320px; border: 0; border-radius: 14px; background: #f3f4f6; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); touch-action: manipulation; user-select: none; }
 #modal-description { white-space: pre-wrap;}
 
 /* お問い合わせフォーム */

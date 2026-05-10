@@ -24,6 +24,9 @@ const modalOverlay = document.getElementById('modal-overlay');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalTerm = document.getElementById('modal-term');
 const modalBadges = document.getElementById('modal-badges');
+const modalImageWrap = document.getElementById('modal-image-wrap');
+const modalImage = document.getElementById('modal-image');
+const modalImageFrame = document.getElementById('modal-image-frame');
 const modalDescription = document.getElementById('modal-description');
 const modalFavBtn = document.getElementById('modal-fav-btn');
 
@@ -440,12 +443,49 @@ function highlight(text, query) {
     return text.replace(regex, '<mark class="highlight-text">$1</mark>');
 }
 
+// Google Drive リンクからファイルIDを抽出
+function extractDriveFileId(url) {
+    if (!url || typeof url !== 'string') return null;
+    const match = url.match(/drive\.google\.com\/(?:file\/d\/|open\?id=)([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/);
+    return match ? (match[1] || match[2]) : null;
+}
+
 function openModal(item) {
     document.getElementById('modal-term').textContent = item.term;
     document.getElementById('modal-description').textContent = item.description || '';
     document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${t}">${t}</span>`).join('');
     updateModalFavBtn(item.id);
     modalFavBtn.onclick = (e) => { toggleFav(e, item.id); updateModalFavBtn(item.id); };
+    if (modalImage && modalImageWrap) {
+        const imageUrlRaw = (item.image || '').trim();
+        if (!imageUrlRaw) {
+            modalImageWrap.style.display = 'none';
+        } else {
+            const driveId = extractDriveFileId(imageUrlRaw);
+            modalImageWrap.style.display = 'block';
+            
+            if (driveId) {
+                // Google Drive preview
+                if (modalImageFrame) {
+                    modalImage.style.display = 'none';
+                    modalImageFrame.src = 'https://drive.google.com/file/d/' + driveId + '/preview';
+                    modalImageFrame.style.display = 'block';
+                }
+            } else if (imageUrlRaw.startsWith('file:') || /^[a-zA-Z]:/.test(imageUrlRaw)) {
+                // Local file path
+                modalImage.removeAttribute('src');
+                modalImage.alt = '⚠️ ローカル画像。スプシのimage列に相対パス（例: images/foo.jpg）を指定してください。';
+                modalImage.style.display = 'block';
+            } else {
+                // Regular URL
+                modalImage.src = imageUrlRaw;
+                modalImage.alt = item.term || '';
+                modalImage.style.display = 'block';
+            }
+        }
+    }
+
+
     // 1. まず、前回表示したボタンが残っていれば削除する（リセット）
     const existingBtn = document.getElementById('modal-map-btn');
     if(existingBtn) existingBtn.remove();
@@ -475,7 +515,25 @@ function openModal(item) {
     }
     modalOverlay.classList.add('active');
 }
-function closeModal() { modalOverlay.classList.remove('active'); }
+function closeModal() {
+    modalOverlay.classList.remove('active');
+    
+    // アニメーション完了後にキャッシュ削除
+    const handleTransitionEnd = () => {
+        if (modalImage) {
+            modalImage.removeAttribute('src');
+            modalImage.alt = '';
+            modalImage.style.display = 'none';
+        }
+        if (modalImageFrame) {
+            modalImageFrame.removeAttribute('src');
+            modalImageFrame.style.display = 'none';
+        }
+        modalOverlay.removeEventListener('transitionend', handleTransitionEnd);
+    };
+    
+    modalOverlay.addEventListener('transitionend', handleTransitionEnd);
+}
 function updateModalFavBtn(id) {
     if (favoriteIds.includes(id)) { modalFavBtn.classList.add('active'); modalFavBtn.textContent = '★'; }
     else { modalFavBtn.classList.remove('active'); modalFavBtn.textContent = '☆'; }
