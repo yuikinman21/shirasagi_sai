@@ -1,23 +1,33 @@
 /*
-  Google スプレッドシート（CSV 出力）を取得して
-  アプリで使う形にマッピングして `window.termsData` に入れるローダー
-
-  期待する CSV ヘッダ: id, term, reading, keyword, tags_1, tags_2, tags_3, tags_4, description, image
-  - `keyword` 列はセル内にカンマを含む可能性があるため、PapaParse を使用して安全にパースする。
-  - 各 tags_* 列をまとめて `tags` 配列を作成。
+  本番環境ではAPI経由でCSVを、サンプル/ローカル環境ではJSONを取得します。
 */
 
-
-// 公開したスプレッドシートの CSV 出力 URL にしてください（例: pub?output=csv）
-// const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRAuYT97GP4G_GTiNJJtHl4loaNajahPjAH-MNVn48pfRME9sz7EyQ4yVmZaqli17NA_BOJgXDnBjEI/pub?output=csv";
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQMhpWQl0NnB0SV2CXmAL_aAHYohFhqlm5LnoVnpOMBJPLeHcLRhWY5fzHUSuM4jYXK6euB6X2LNUmz/pub?gid=232235237&single=true&output=csv";
-
+const API_URL = "/api/sheet";
 
 async function loadSheetAsTerms(noCache = true) {
     try {
-        const url = noCache ? CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now() : CSV_URL;
+        const url = noCache ? API_URL + '?_=' + Date.now() : API_URL;
         const res = await fetch(url, { cache: 'no-store' });
-        if (!res.ok) throw new Error('CSV fetch failed: ' + res.status);
+        
+        if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+
+        // APIが何を返してきたか（CSVかJSONか）を判定します
+        const contentType = res.headers.get("content-type");
+
+        // ▼ パターンA：サンプル/ローカル環境 (APIがダミーの JSON を返してきた場合)
+        if (contentType && contentType.includes("application/json")) {
+            console.log("JSONダミーデータを読み込みました (Sample/Local mode)");
+            const badge = document.getElementById('sample-mode-badge');
+            if (badge) {
+                badge.classList.remove('hidden');
+            }
+            const jsonData = await res.json();
+            window.termsData = jsonData;
+            return jsonData;
+        }
+
+        // ▼ パターンB：本番環境 (APIがスプシの CSV を返してきた場合)
+        console.log("スプレッドシートのCSVを読み込みました (Production mode)");
         const csvText = await res.text();
 
         // PapaParse を使用してヘッダ付きで安全にパース
@@ -61,15 +71,16 @@ async function loadSheetAsTerms(noCache = true) {
                 tags: Array.from(new Set(tags)),
                 description: (row.description || '').trim(),
                 image: (row.image || '').trim(),
-                // K列があれば updated プロパティとして保持する（Apps Script でタイムスタンプを書き込む想定）
-                updated: updatedFieldKey ? (row[updatedFieldKey] || '').trim() : ''
+                updated: updatedFieldKey ? (row[updatedFieldKey] || '').trim() : '',
+                map_x: row.map_x != null && String(row.map_x).trim() !== '' ? parseFloat(row.map_x) : null,
+                map_y: row.map_y != null && String(row.map_y).trim() !== '' ? parseFloat(row.map_y) : null
             };
         }).filter(item => item.term); // 用語が必須
 
         // 最低限の重複 id 対策: 重複があれば連番に差し替える
         const seen = new Set();
         mapped.forEach((it, i) => {
-           // idが不正または既に存在する場合に未使用の連番を割り当てる
+            // idが不正または既に存在する場合に未使用の連番を割り当てる
             if (!it.id || seen.has(it.id)) {
                 let candidate = 1;
                 while (seen.has(candidate)) {
@@ -84,18 +95,16 @@ async function loadSheetAsTerms(noCache = true) {
         console.log(`Loaded ${mapped.length} terms from CSV`);
         return mapped;
     } catch (err) {
-        console.error('Failed to load sheet CSV:', err);
-        // エラー時は window.termsData を空配列にしておく
+        console.error('Failed to load data:', err);
         if (window.termsData && Array.isArray(window.termsData) && window.termsData.length > 0) {
-            console.warn('window.termsData contained old data, but is being reset to an empty array due to load failure.');
+            console.warn('Old data reset due to load failure.');
         }
         window.termsData = [];
         return window.termsData;
     }
 }
 
-// 自動でロード（defer 属性で読み込まれることを想定）
-// Promise を外部に公開して init() が待てるようにする
+// 自動でロード
 window.sheetPromise = loadSheetAsTerms();
 
 // 手動再読み込みを行うための公開関数

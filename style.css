@@ -39,6 +39,28 @@ body {
 .app-title { font-size: 28px; margin: 0; color: var(--primary); letter-spacing: 0.1em; }
 .subtitle { font-size: 14px; color: var(--text-sub); font-weight: normal; }
 
+/* --- サンプル版バッジ --- */
+.sample-badge {
+    display: inline-block;
+    background-color: #ff9800;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 4px 12px;
+    border-radius: 16px;
+    margin-top: 12px;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    letter-spacing: 0.05em;
+    animation: fadeIn 0.5s ease;
+}
+.sample-badge.hidden {
+    display: none !important;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .home-search-wrapper { width: 100%; max-width: 400px; position: relative; margin-bottom: 30px; }
 .search-input-lg { width: 100%; padding: 16px 20px; border-radius: 30px; border: 1px solid #ddd; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); outline: none; transition: 0.3s; box-sizing: border-box; }
 .search-input-lg:focus { border-color: var(--primary); box-shadow: 0 4px 16px rgba(0, 86, 179, 0.2); }
@@ -385,6 +407,318 @@ body {
     opacity: 1 !important;
 }
 
+/* --- 地図画面スタイル (刷新版) --- */
+
+/* 地図ビュー全体 */
+#view-map {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: #f0f2f5;
+    z-index: 2000; /* 最前面 */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* スクロール禁止 */
+}
+
+/* --- 固定ヘッダー --- */
+.map-header {
+    position: absolute; /* 地図の上に浮く */
+    top: 0; left: 0; width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    z-index: 10;
+    padding: 10px 16px;
+    padding-top: max(10px, env(safe-area-inset-top)); /* iPhoneのノッチ対応 */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ヘッダー上段（キャンパス選択 + 閉じる） */
+.map-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.map-select {
+    font-size: 14px;
+    font-weight: bold;
+    padding: 6px 24px 6px 12px;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: var(--text-main);
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M0 0 L5 6 L10 0 Z' fill='%23666' /></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+}
+
+.map-close-btn {
+    background: #eee;
+    border: none;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 20px;
+    color: #666;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+}
+
+/* ヘッダー下段（検索バー） */
+.map-search-bar {
+    position: relative; /* ボタンを絶対配置するための基準 */
+    width: 100%;
+}
+
+#map-search-input {
+    width: 100%;
+    padding: 10px 20px;
+    box-sizing: border-box;
+
+}
+
+#map-search-submit {
+    /* バーが細くなった分、ボタンの上下の隙間も減らしてバランスを取る */
+    top: 4px;
+    bottom: 4px;
+    right: 4px;
+    
+    /* ボタン内の文字サイズ微調整 */
+    font-size: 13px;
+    padding: 0 16px;
+}
+
+/* --- 地図コンテナ --- */
+.map-container {
+    flex: 1;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    background-image: radial-gradient(#ddd 1px, transparent 1px);
+    background-size: 20px 20px;
+    background-color: #f0f2f5;
+    cursor: grab;
+    touch-action: none; /* タッチデバイスでのブラウザのデフォルトジェスチャーを無効化 */
+}
+.map-container:active {
+    cursor: grabbing;
+}
+
+.map-content {
+    position: absolute;
+    top: 0; left: 0;
+    transform-origin: 0 0; /* 左上を基準に変形 */
+    will-change: transform;
+}
+
+.map-image {
+    display: block;
+    max-width: none; /* 親要素の幅に制限されない */
+    pointer-events: none; /* 画像自体のドラッグ防止 */
+    user-select: none;
+}
+
+/* 1. 「用語一覧」と「地図ボタン」をまとめる枠 */
+.view-all-wrapper {
+    position: relative;       /* ボタン位置の基準点にする */
+    display: inline-block;    /* 中身の幅に合わせる */
+    margin-top: 20px;         /* 上との間隔 */
+}
+
+/* 2. 地図ボタン (FAB) のデザインと位置 */
+.map-fab-btn {
+    position: absolute;       /* 親の枠に対して絶対配置 */
+    bottom: -15px;            /* 少し下へ */
+    right: -80px;             /* 右側へずらす（位置はお好みで調整してください） */
+    
+    width: 56px;
+    height: 56px;
+    background: #ffffff;      /* 背景は白 */
+    color: var(--primary);    /* アイコンは青 */
+    border: 1px solid #e0e0e0;
+    border-radius: 50%;
+    font-size: 26px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s ease;
+}
+
+.map-fab-btn:hover {
+    background: #f5f7fa;
+    transform: scale(1.05);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.map-fab-btn:active {
+    transform: scale(0.95);
+    background: #eef2f6;
+}
+
+/* 用語リスト内の「地図で確認」ボタン */
+.map-jump-btn {
+    display: inline-flex;
+    align-items: center;
+    margin-top: 8px;
+    padding: 6px 14px;
+    background-color: #f0f7ff; /* 薄い青背景 */
+    color: var(--primary);
+    border: 1px solid #daeaff;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.map-jump-btn:hover {
+    background-color: #e0efff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.map-jump-btn:active {
+    transform: scale(0.98);
+}
+
+
+/* --- マップ上のピン --- */
+.map-pin {
+    position: absolute;
+    width: 56px;
+    height: 84px;
+    margin-left: -28px;
+    margin-top: -84px;
+    
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 42"><path fill="%23555555" stroke="%23ffffff" stroke-width="2" d="M12 0C5.373 0 0 5.373 0 12c0 8.25 12 24 12 24s12-15.75 12-24C24 5.373 18.627 0 12 0zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"/></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center bottom;
+    transform-origin: center bottom; 
+    cursor: pointer;
+    z-index: 50;
+    filter: drop-shadow(0px 8px 8px rgba(0,0,0,0.25));
+}
+
+.map-pin:active {
+    filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.4));
+}
+
+.map-pin.highlighted-pin {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 42"><path fill="%230056b3" stroke="%23ffffff" stroke-width="2" d="M12 0C5.373 0 0 5.373 0 12c0 8.25 12 24 12 24s12-15.75 12-24C24 5.373 18.627 0 12 0zm0 18c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"/></svg>');
+}
+
+/* --- 下部ポップアップ --- */
+.map-popup {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: var(--white);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+    width: 85%;
+    max-width: 400px;
+    text-align: center;
+    transition: opacity 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.map-popup.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(150%); /* 下に隠す */
+}
+.map-popup-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #f0f2f5;
+    border: none;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--text-sub);
+}
+
+.map-popup-body {
+    max-height: 120px; /* 説明文が長すぎる場合はスクロールさせる */
+    overflow-y: auto;
+    margin-bottom: 16px;
+    padding: 0 10px;
+    text-align: left; /* 説明文は左揃えが読みやすい */
+    /* スクロールバーを見えにくくする */
+    scrollbar-width: thin;
+    scrollbar-color: #ccc transparent;
+    touch-action: pan-y; /* タッチデバイスでの縦スクロールを有効にする */
+}
+
+.map-popup-body::-webkit-scrollbar {
+    width: 6px;
+}
+.map-popup-body::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
+.map-popup-desc {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* 既存の #map-popup-term の margin-bottom を少し減らしてバランスを取る */
+#map-popup-term {
+    margin: 0 0 12px 0; /* 元は 16px */
+    font-size: 18px;
+    color: var(--text-main);
+}
+
+/* --- トースト通知 (おしゃれなポップアップ) --- */
+.toast-notification {
+    position: fixed;
+    top: 20px; /* 画面上部からの位置 */
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--primary); 
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 8px 24px rgba(0, 86, 179, 0.3); 
+    z-index: 3000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* 表示時のクラス */
+.toast-notification.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+.toast-message {
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+}
 
 /* チップ */
 .chip { padding: 6px 14px; border-radius: 6px; font-size: 13px; border: 1px solid #eee; background: var(--white); color: var(--text-sub); white-space: nowrap; cursor: pointer; transition: 0.2s; user-select: none; flex-shrink: 0; font-family: inherit; line-height: inherit; appearance: none; }
@@ -428,6 +762,7 @@ body {
 .modal-header { margin-bottom: 16px; padding-right: 30px; }
 #modal-term { margin: 0 0 8px 0; font-size: 24px; color: var(--text-main); }
 .modal-body { font-size: 15px; color: #555; line-height: 1.7; max-height: 60vh; overflow-y: auto; }
+#modal-description { white-space: pre-wrap;}
 
 /* お問い合わせフォーム */
 .contact-desc { font-size: 14px; color: #555; margin-bottom: 20px; text-align: center; }
