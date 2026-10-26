@@ -2,6 +2,13 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = async (req, res) => {
+  // 読み取り専用APIなので GET / HEAD 以外は受け付けない
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    res.setHeader('Allow', 'GET, HEAD');
+    return res.status(405).json({ error: "Method Not Allowed" });
+  }
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
   const csvUrl = process.env.CSV_URL;
 
   if (csvUrl) {
