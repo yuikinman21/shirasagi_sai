@@ -326,8 +326,9 @@ function renderList() {
 
     sorted.forEach((item, i) => {
         const isFav = favoriteIds.includes(item.id);
-        const badgesHtml = (item.tags || []).map(tag => 
-            `<span class="category-badge" data-tag="${tag}" onclick="searchByTag(event, '${tag}')">${tag}</span>`
+        // シート由来の値は必ずエスケープしてから HTML に埋め込む（XSS対策）
+        const badgesHtml = (item.tags || []).map(tag =>
+            `<span class="category-badge" data-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</span>`
         ).join('');
 
         const li = document.createElement('li');
@@ -335,17 +336,22 @@ function renderList() {
         li.style.animationDelay = `${i * 0.05}s`;
 
         li.innerHTML = `
-            <button class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, ${item.id})">
+            <button class="fav-btn ${isFav ? 'active' : ''}">
                 ${isFav ? '★' : '☆'}
             </button>
             <div class="item-header-row">
                 <span class="term">${highlight(item.term, currentQuery)}
-                    <span class="reading">(${item.reading})</span>
+                    <span class="reading">(${escapeHtml(item.reading)})</span>
                 </span>
                 <div class="badges-wrapper no-select">${badgesHtml}</div>
             </div>
             <div class="description">${highlight(item.description, currentQuery)}</div>
         `;
+        // インライン onclick は使わずにリスナーで登録する
+        li.querySelector('.fav-btn').addEventListener('click', (e) => toggleFav(e, item.id));
+        li.querySelectorAll('.category-badge').forEach(badge => {
+            badge.addEventListener('click', (e) => searchByTag(e, badge.dataset.tag));
+        });
         li.onclick = () => openModal(item);
         listContainer.appendChild(li);
     });
@@ -398,7 +404,7 @@ window.toggleFav = function(e, id) {
     id = parseInt(id);
     if (favoriteIds.includes(id)) favoriteIds = favoriteIds.filter(f => f !== id);
     else favoriteIds.push(id);
-    localStorage.setItem('shirasagi_favs', JSON.stringify(favoriteIds));
+    try { localStorage.setItem('shirasagi_favs', JSON.stringify(favoriteIds)); } catch (err) { /* 保存不可の環境では無視 */ }
     if (selectedTags.has('favorites')) renderList(); else renderList();
     renderHomeFavorites();
 };
@@ -415,7 +421,7 @@ function renderHomeFavorites() {
         if(item) {
             const li = document.createElement('li');
             li.className = 'fav-item';
-            li.innerHTML = `<span>${item.term}</span> <span style="font-size:16px;color:#ccc;">›</span>`;
+            li.innerHTML = `<span>${escapeHtml(item.term)}</span> <span style="font-size:16px;color:#ccc;">›</span>`;
             li.onclick = () => openModal(item);
             homeFavoritesList.appendChild(li);
         }
@@ -423,8 +429,14 @@ function renderHomeFavorites() {
 }
 
 function loadFavorites() {
-    const saved = localStorage.getItem('shirasagi_favs');
-    if (saved) favoriteIds = JSON.parse(saved);
+    try {
+        const saved = localStorage.getItem('shirasagi_favs');
+        const parsed = saved ? JSON.parse(saved) : [];
+        // 改ざん・破損した値は無視し、数値IDだけを残す
+        favoriteIds = Array.isArray(parsed) ? parsed.filter(id => Number.isInteger(id)) : [];
+    } catch (e) {
+        favoriteIds = [];
+    }
 }
 
 function updateCategoryChips() {
@@ -434,16 +446,33 @@ function updateCategoryChips() {
         else chip.classList.toggle('active', selectedTags.has(tag));
     });
 }
+function escapeHtml(value) {
+    return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function highlight(text, query) {
-    if (!query || !text) return text || '';
-    const regex = new RegExp(`(${query})`, 'gi');
-    return text.replace(regex, '<mark class="highlight-text">$1</mark>');
+    if (!text) return '';
+    if (!query) return escapeHtml(text);
+    // 入力値は正規表現として解釈させない（エラー・ReDoS対策）
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
+    // split + キャプチャグループで、奇数番目がマッチ部分になる
+    return text.split(regex)
+        .map((part, i) => i % 2 === 1
+            ? `<mark class="highlight-text">${escapeHtml(part)}</mark>`
+            : escapeHtml(part))
+        .join('');
 }
 
 function openModal(item) {
     document.getElementById('modal-term').textContent = item.term;
     document.getElementById('modal-description').textContent = item.description || '';
-    document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${t}">${t}</span>`).join('');
+    document.getElementById('modal-badges').innerHTML = (item.tags || []).map(t => `<span class="category-badge" data-tag="${escapeHtml(t)}">${escapeHtml(t)}</span>`).join('');
     updateModalFavBtn(item.id);
     modalFavBtn.onclick = (e) => { toggleFav(e, item.id); updateModalFavBtn(item.id); };
     // 1. まず、前回表示したボタンが残っていれば削除する（リセット）
